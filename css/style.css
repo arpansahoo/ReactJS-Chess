@@ -15,6 +15,22 @@ body, html {
 	background-color:#034f84;
 }
 
+.top_left_square {
+	border-radius: 8px 0px 0px 0px;
+}
+
+.top_right_square {
+	border-radius: 0px 8px 0px 0px;
+}
+
+.bottom_left_square {
+	border-radius: 0px 0px 0px 8px;
+}
+
+.bottom_right_square {
+	border-radius: 0px 0px 8px 0px;
+}
+
 .table {
 	position: absolute;
 	margin: auto;
@@ -25,33 +41,6 @@ body, html {
 	width: 640px;
 	height: 640px;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-.checker {
-	top: 10px;
-	left: 10px;
-	width: 54px;
-	height: 54px;
-	border-radius: 50%;
-	position: absolute;
-	border: 4px solid white;
-	cursor: pointer;
-}
-
-.white_checker {
-	background: #CC0000;
- 	-webkit-transition: 0.3s ease-in-out;
-	-moz-transition: 0.3s ease-in-out;
-  	-o-transition: 0.3s ease-in-out;
-  	transition: 0.3s ease-in-out;
-}
-
-.black_checker {
-	background: #00001F;
- 	-webkit-transition: 0.3s ease-in-out;
-	-moz-transition: 0.3s ease-in-out;
-  	-o-transition: 0.3s ease-in-out;
-  	transition: 0.3s ease-in-out;
 }
 
 @media only screen and (max-width : 640px) {
