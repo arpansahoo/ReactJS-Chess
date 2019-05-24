@@ -11,8 +11,12 @@ body, html {
 	width: 80px;
 }
 
-.overlay {
-	background-color:black;
+.selected_white_square {
+	background-color:#00e686;
+}
+
+.selected_black_square {
+	background-color:#00c070;
 }
 
 .white_square {
