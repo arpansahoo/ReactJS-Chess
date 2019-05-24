@@ -75,6 +75,115 @@ function Square(props) {
     }
 }
 
+class Board extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            squares: initializeBoard(),
+            source: -1,
+        };
+    }
+
+    handleClick(i) {
+        const copy_squares = this.state.squares.slice();
+        console.log("Source#: " + this.state.source);
+        if (this.state.source == -1) {
+            if (copy_squares[i] != null) {
+                this.setState( {
+                    source: i,
+                });
+            }
+        }
+        if (this.state.source > -1) {
+            if (i != this.state.source) {
+                copy_squares[i] = copy_squares[this.state.source];
+                copy_squares[this.state.source] = null;
+            }
+            this.setState( {
+                source: -1,
+            });
+        }
+        this.setState( {
+            squares: copy_squares,
+        });
+    }
+
+    render() {
+        const board = [];
+        for (let i = 0; i < 8; i++) {
+            const squareRows = [];
+            for (let j = 0; j < 8; j++) {
+                if (i == 0 && j == 0) {
+                    squareRows.push(<Square value = {this.state.squares[(i*8) + j]}
+                        color = "white_square" corner = " top_left_square"
+                        onClick = {() => this.handleClick((i*8) + j)} />
+                    );
+                } else if (i == 0 && j == 7) {
+                    squareRows.push(<Square value = {this.state.squares[(i*8) + j]}
+                        color = "black_square" corner = " top_right_square"
+                        onClick = {() => this.handleClick((i*8) + j)} />
+                    );
+                } else if (i == 7 && j == 0) {
+                    squareRows.push(<Square value = {this.state.squares[(i*8) + j]}
+                        color = "black_square" corner = " bottom_left_square"
+                        onClick = {() => this.handleClick((i*8) + j)} />
+                    );
+                } else if (i == 7 && j ==7) {
+                    squareRows.push(<Square value = {this.state.squares[(i*8) + j]}
+                        color = "white_square" corner = " bottom_right_square"
+                        onClick = {() => this.handleClick((i*8) + j)} />);
+                } else {
+                    const squarecolor = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))? "white_square" : "black_square";
+                    squareRows.push(<Square value = {this.state.squares[(i*8) + j]}
+                        color = {squarecolor} corner = ""
+                        onClick = {() => this.handleClick((i*8) + j)} />);
+                }
+            }
+            board.push(<div>{squareRows}</div>)
+        }
+
+        return (
+            <div>
+                <div className="table">
+                    {board}
+                </div>
+                <div className="column_num">
+                    <Column_Square letter = 'A'/>
+                    <Column_Square letter = 'B'/>
+                    <Column_Square letter = 'C'/>
+                    <Column_Square letter = 'D'/>
+                    <Column_Square letter = 'E'/>
+                    <Column_Square letter = 'F'/>
+                    <Column_Square letter = 'G'/>
+                    <Column_Square letter = 'H'/>
+                </div>
+                <div className="row_num">
+                    <Row_Square letter = '8'/>
+                    <Row_Square letter = '7'/>
+                    <Row_Square letter = '6'/>
+                    <Row_Square letter = '5'/>
+                    <Row_Square letter = '4'/>
+                    <Row_Square letter = '3'/>
+                    <Row_Square letter = '2'/>
+                    <Row_Square letter = '1'/>
+                </div>
+            </div>
+        );
+    }
+}
+
+class Game extends React.Component {
+    render() {
+        return (
+            <div className="game">
+                <Board />
+            </div>
+        );
+    }
+}
+
+// ========================================
+
 function initializeBoard() {
     const squares = Array(64).fill(null);
     //black pawns
@@ -122,90 +231,25 @@ function initializeBoard() {
     return squares;
 }
 
-class Board extends React.Component {
-    render() {
-        const board = [];
-        for (let i = 0; i < 8; i++) {
-            const squareRows = [];
-            for (let j = 0; j < 8; j++) {
-                if (i == 0 && j == 0) {
-                    squareRows.push(<Square value = {this.props.squares[(i*8) + j]}
-                        color = "white_square" corner = " top_left_square"
-                        onClick = {() => this.props.onClick((i*8) + j)} />
-                    );
-                } else if (i == 0 && j == 7) {
-                    squareRows.push(<Square value = {this.props.squares[(i*8) + j]}
-                        color = "black_square" corner = " top_right_square"
-                        onClick = {() => this.props.onClick((i*8) + j)} />
-                    );
-                } else if (i == 7 && j == 0) {
-                    squareRows.push(<Square value = {this.props.squares[(i*8) + j]}
-                        color = "black_square" corner = " bottom_left_square"
-                        onClick = {() => this.props.onClick((i*8) + j)} />
-                    );
-                } else if (i == 7 && j ==7) {
-                    squareRows.push(<Square value = {this.props.squares[(i*8) + j]}
-                        color = "white_square" corner = " bottom_right_square"
-                        onClick = {() => this.props.onClick((i*8) + j)} />);
-                } else {
-                    const squarecolor = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))? "white_square" : "black_square";
-                    squareRows.push(<Square value = {this.props.squares[(i*8) + j]}
-                        color = {squarecolor} corner = ""
-                        onClick = {() => this.props.onClick((i*8) + j)} />
-                    );
-                }
-            }
-            board.push(<div>{squareRows}</div>)
-        }
+function Column_Square(props) {
+    return (
+        <button className = {"column_square label"}>
+            {props.letter}
+        </button>
+    );
+}
 
-        return (
-            <div>
-                <div className="table">
-                    {board}
-                </div>
-            </div>
-        );
-    }
+function Row_Square(props) {
+    return (
+        <button className = {"row_square label"}>
+            {props.letter}
+        </button>
+    );
 }
 
 function isEven(value) {
     return value %2;
 }
-
-class Game extends React.Component {
-    constructor() {
-        super();
-        this.state = {
-            squares: initializeBoard(),
-            player: 'w',
-            turn: 'w',
-        };
-    }
-
-    handleClick(i) {
-        const squares = this.state.squares.slice();
-        this.state.squares[i] = null;
-        this.state.squares[i] = this.state.squares[i+2];
-        this.setState( {
-            squares:squares,
-        });
-        console.log("From handleClick: " + this.state.squares[i].ascii);
-    }
-
-    render() {
-        console.log("From render(): " + this.state.squares[9].ascii);
-        return (
-            <div className="game">
-                <Board
-                    squares = {this.state.squares}
-                    onClick = {(i) => this.handleClick(i)} />
-                <h1>squares[9]: {this.state.squares[9].ascii}</h1>
-            </div>
-        );
-    }
-}
-
-// ========================================
 
 ReactDOM.render(
     <Game />,
