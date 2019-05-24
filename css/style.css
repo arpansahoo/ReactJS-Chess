@@ -1,12 +1,20 @@
 body, html {
 	background-color: #242424;
 	color: white;
+	margin: 0 20;
 }
 
 .square {
-	float: left;
-	width: 80px;
-	height: 80px;
+  border: 0px solid #999;
+  float: left;
+  font-size: 80px;
+  height: 80px;
+  width: 80px;
+}
+
+.status {
+	font-size: 50px;
+	margin: 20 0;
 }
 
 .white_square {
@@ -59,4 +67,9 @@ body, html {
 		width: 32px;
 		height: 32px;
 	}
+}
+
+.game {
+  display: flex;
+  flex-direction: row;
 }
