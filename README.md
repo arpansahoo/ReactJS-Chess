@@ -1,3 +1,3 @@
 # pokemon-chess
 
-Hello, world.
+Web chess game coded in React.
