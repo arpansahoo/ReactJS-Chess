@@ -1,11 +1,10 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-
-import 'index.css';
-import Game from './components/game.js'
-
+class Greeting extends React.Component {
+    render() {
+        return (<p>Hello world</p>);
+    }
+}
 
 ReactDOM.render(
-  <Game />,
-  document.getElementById('root')
+    <Greeting />,
+    document.getElementById('root')
 );
