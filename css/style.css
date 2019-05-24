@@ -4,16 +4,11 @@ body, html {
 }
 
 .square {
-  border: 0px solid #999;
+  border: 0px;
   float: left;
   font-size: 80px;
   height: 80px;
   width: 80px;
-}
-
-.status {
-	font-size: 50px;
-	margin: 20 0;
 }
 
 .white_square {
@@ -66,9 +61,4 @@ body, html {
 		width: 32px;
 		height: 32px;
 	}
-}
-
-.game {
-  display: flex;
-  flex-direction: row;
 }

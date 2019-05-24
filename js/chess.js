@@ -1,8 +1,10 @@
+import Piece from 'piece.js';
+
 function Square(props) {
     return (
         <button className = {"square " + props.color + props.corner}
         onClick = {props.onClick}>
-            {props.value}
+            {props.value.icons}
         </button>
     );
 }
@@ -10,11 +12,10 @@ function Square(props) {
 function initializeBoard() {
     const squares = Array(64).fill(null);
     //black pawns
-    for (let i = 8; i < 16; i++) {
-        squares[i] = (<img src = "https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg">
-        </img>);
+    for (let i = 0; i < 64; i++) {
+        squares[i] = new Piece("https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg");
     }
-
+/*
     // white pawns
     for (let i = 8*6; i < 8*6+8; i++) {
         squares[i] = (<img src = "https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg">
@@ -67,7 +68,7 @@ function initializeBoard() {
     squares[56+3] = (<img src = "https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg">
     </img>);
     squares[56+4] = (<img src = "https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg">
-    </img>);
+    </img>);*/
 
     return squares;
 }
@@ -82,8 +83,7 @@ class Board extends React.Component {
 
     handleClick(i) {
         const squares = this.state.squares.slice();
-        squares[i] = (<img src = "https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg">
-        </img>);
+        //squares[i] = new Pawn();
         this.setState( {
             squares:squares,
         });
