@@ -4,13 +4,14 @@ body, html {
 }
 
 .square {
-	border: 0px;
+	border: none;
 	float: left;
 	font-size: 80px;
 	height: 80px;
 	width: 80px;
 	transition: background-color 0.7s;
 	-webkit-transition: background-color 0.7s;
+	cursor: pointer;
 }
 
 .selected_white_square {
