@@ -154,7 +154,37 @@ class Pawn {
     }
 
     can_move(start, end) {
-        return true;
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (this.player == 'w') {
+            if (col_diff == 0) {
+                if (row_diff == 1 || row_diff == 2) {
+                    return true;
+                }
+            } else if (col_diff == -1 || col_diff == 1) {
+                if (row_diff == 1) {
+                    return true;
+                }
+            }
+        }
+        else {
+            if (col_diff == 0) {
+                if (row_diff == -2 || row_diff == -1) {
+                    return true;
+                }
+            } else if (col_diff == -1 || col_diff == 1) {
+                if (row_diff == -1) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 
@@ -227,6 +257,7 @@ class Board extends React.Component {
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
+            turn_num: 1,
         };
     }
 
@@ -266,6 +297,64 @@ class Board extends React.Component {
         return false;
     }
 
+    check_pawn(start, end) {
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+        let row_diff = end_row - start_row;
+        let col_diff = end_col - start_col;
+
+        const copy_squares = this.state.squares.slice();
+
+        if (row_diff == 2 || row_diff == -2) {
+            if (copy_squares[start].player == 'w' && (start < 48 || start > 55)) {
+                return false;
+            }
+            if (copy_squares[start].player == 'b' && (start < 8 || start > 15)) {
+                return false;
+            }
+        }
+
+        if (copy_squares[end].ascii != null) {
+            if (col_diff == 0) {
+                return false;
+            }
+        }
+
+        if (row_diff == -1 || row_diff == 1) {
+            if (col_diff == -1 || col_diff == 1) {
+                if (copy_squares[end].ascii == null) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    invalid_move(start, end) {
+        const copy_squares = this.state.squares.slice();
+        var bqrp = copy_squares[start].ascii == 'r' ||
+            copy_squares[start].ascii == 'R' ||
+            copy_squares[start].ascii == 'q' ||
+            copy_squares[start].ascii == 'Q' ||
+            copy_squares[start].ascii == 'b' ||
+            copy_squares[start].ascii == 'B' ||
+            copy_squares[start].ascii == 'p' ||
+            copy_squares[start].ascii == 'P';
+
+        let invalid = bqrp == true
+            && this.check_blockers(start, end) == true;
+
+        var pawn = copy_squares[start].ascii == 'p' ||
+            copy_squares[start].ascii == 'P';
+
+        invalid = pawn == true && this.check_pawn(start, end) == false;
+
+        return invalid;
+    }
+
     handleClick(i) {
         const copy_squares = this.state.squares.slice();
 
@@ -299,25 +388,25 @@ class Board extends React.Component {
                     squares: copy_squares,
                 });
             } else { // user is trying to move her piece to empty space or to capture opponent's piece
-                // this block results in actual movement if piece can legally make the move
+
                 if (i != this.state.source
                     && copy_squares[this.state.source].can_move(this.state.source, i) == true) {
 
-                        var bqr = copy_squares[this.state.source].ascii == 'r' ||
-                            copy_squares[this.state.source].ascii == 'R' ||
-                            copy_squares[this.state.source].ascii == 'q' ||
-                            copy_squares[this.state.source].ascii == 'Q' ||
-                            copy_squares[this.state.source].ascii == 'b' ||
-                            copy_squares[this.state.source].ascii == 'B';
-
-                        let invalid = bqr == true
-                            && this.check_blockers(this.state.source, i) == true;
-
-                        if (invalid == false) {
+                        // this block results in actual movement if piece can legally make the move
+                        if (this.invalid_move(this.state.source, i) == false) {
                             copy_squares[i] = copy_squares[this.state.source];
                             copy_squares[i].highlight = 1;
                             copy_squares[this.state.source] = new filler_piece(this.state.turn);
                             copy_squares[this.state.source].highlight = 1;
+
+                            // pawn promotion
+                            if (copy_squares[i].ascii == 'p' && (i >= 0 && i <= 7)) {
+                                copy_squares[i] = new Queen('w');
+                                copy_squares[i].highlight = 1;
+                            } else if (copy_squares[i].ascii == 'P' && (i >= 56 && i <= 63)) {
+                                copy_squares[i] = new Queen('b');
+                                copy_squares[i].highlight = 1;
+                            }
 
                             // clear any highlights from last turn after move is made
                             for (let i = 0; i < 64; i++) {
@@ -331,11 +420,14 @@ class Board extends React.Component {
 
                             this.setState( {
                                 turn: (this.state.turn == 'w' ? 'b':'w'),
+                                turn_num: (this.state.turn_num + 1),
                                 source: -1, // set source back to non-clicked
                                 squares: copy_squares,
                             });
+
                         }
                 } else {
+                    // un-higlight selection if same square is clicked twice
                     if (i == this.state.source) {
                         copy_squares[this.state.source].highlight = 0;
                         this.setState( {
