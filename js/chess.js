@@ -7,6 +7,10 @@ class King {
             : <img src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg"></img>);
         this.ascii = (player == 'w' ? 'k':'K');
     }
+
+    can_move(start, end) {
+        return true;
+    }
 }
 
 class Queen {
@@ -17,6 +21,10 @@ class Queen {
             <img src="https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg"></img>
             : <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg"></img>);
         this.ascii = (player == 'w' ? 'q':'Q');
+    }
+
+    can_move(start, end) {
+        return true;
     }
 }
 
@@ -29,6 +37,35 @@ class Knight {
             : <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg"></img>);
         this.ascii = (player == 'w' ? 'n':'N');
     }
+
+    can_move(start, end) {
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff == 1 && col_diff == -2) {
+            return true;
+        } else if (row_diff == 2 && col_diff == -1) {
+            return true;
+        } else if (row_diff == 2 && col_diff == 1) {
+            return true;
+        } else if (row_diff == 1 && col_diff == 2) {
+            return true;
+        } else if (row_diff == -1 && col_diff == 2) {
+            return true;
+        } else if (row_diff == -2 && col_diff == 1) {
+            return true;
+        } else if (row_diff == -2 && col_diff == -1) {
+            return true;
+        } else if (row_diff == -1 && col_diff == -2) {
+            return true;
+        }
+        return false;
+    }
 }
 
 class Bishop {
@@ -39,6 +76,10 @@ class Bishop {
             <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg"></img>
             : <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg"></img>);
         this.ascii = (player == 'w' ? 'b':'B');
+    }
+
+    can_move(start, end) {
+        return true;
     }
 }
 
@@ -51,6 +92,10 @@ class Pawn {
             : <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg"></img>);
         this.ascii = (player == 'w' ? 'p':'P');
     }
+
+    can_move(start, end) {
+        return true;
+    }
 }
 
 class Rook {
@@ -61,6 +106,10 @@ class Rook {
             <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg"></img>
             : <img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg"></img>);
         this.ascii = (player == 'w' ? 'r':'R');
+    }
+
+    can_move(start, end) {
+        return true;
     }
 }
 
@@ -111,15 +160,15 @@ class Board extends React.Component {
             var cannibalism = false;
             if (copy_squares[i] != null) {
                 cannibalism = (copy_squares[i].player == copy_squares[this.state.source].player);
-                console.log(cannibalism);
             }
-            if (i != this.state.source && cannibalism == false) {
-                copy_squares[i] = copy_squares[this.state.source];
-                copy_squares[this.state.source] = null;
-                copy_squares[i].underlay = 0;
-                this.setState( {
-                    turn: (this.state.turn == 'w' ? 'b':'w'),
-                });
+            if (i != this.state.source && cannibalism == false
+                && copy_squares[this.state.source].can_move(this.state.source, i) == true) {
+                    copy_squares[i] = copy_squares[this.state.source];
+                    copy_squares[this.state.source] = null;
+                    copy_squares[i].underlay = 0;
+                    this.setState( {
+                        turn: (this.state.turn == 'w' ? 'b':'w'),
+                    });
             } else {
                 copy_squares[this.state.source].underlay = 0;
             }
