@@ -49,7 +49,28 @@ class Queen {
     }
 
     can_move(start, end) {
-        return true;
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff > 0 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 0 && col_diff > 0) {
+            return true;
+        } else if (row_diff < 0 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 0 && col_diff < 0) {
+            return true;
+        } else if (row_diff == col_diff) {
+            return true;
+        } else if (row_diff == -col_diff) {
+            return true;
+        }
+        return false;
     }
 }
 
@@ -104,8 +125,22 @@ class Bishop {
     }
 
     can_move(start, end) {
-        return true;
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff == col_diff) {
+            return true;
+        } else if (row_diff == -col_diff) {
+            return true;
+        }
+        return false;
     }
+
 }
 
 class Pawn {
@@ -209,7 +244,7 @@ class Board extends React.Component {
         while (col_ctr != col_diff || row_ctr != row_diff) {
             let position = ((64 - (start_row * 8)) + (-8 * row_ctr)) + (start_col - 1 + col_ctr);
             if (copy_squares[position].ascii != null && copy_squares[position] != copy_squares[start]) {
-                return false;
+                return true;
             }
             if (col_ctr != col_diff) {
                 if (col_diff > 0) {
@@ -228,7 +263,7 @@ class Board extends React.Component {
             }
         }
 
-        return true;
+        return false;
     }
 
     handleClick(i) {
@@ -269,12 +304,16 @@ class Board extends React.Component {
                     && copy_squares[this.state.source].can_move(this.state.source, i) == true) {
 
                         var bqr = copy_squares[this.state.source].ascii == 'r' ||
-                            copy_squares[this.state.source].ascii == 'R';
+                            copy_squares[this.state.source].ascii == 'R' ||
+                            copy_squares[this.state.source].ascii == 'q' ||
+                            copy_squares[this.state.source].ascii == 'Q' ||
+                            copy_squares[this.state.source].ascii == 'b' ||
+                            copy_squares[this.state.source].ascii == 'B';
 
-                        let invalid = bqr
-                            && this.check_blockers(this.state.source, i) == false;
+                        let invalid = bqr == true
+                            && this.check_blockers(this.state.source, i) == true;
 
-                        if (invalid != true) {
+                        if (invalid == false) {
                             copy_squares[i] = copy_squares[this.state.source];
                             copy_squares[i].highlight = 1;
                             copy_squares[this.state.source] = new filler_piece(this.state.turn);
