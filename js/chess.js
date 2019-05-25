@@ -87,34 +87,49 @@ class Board extends React.Component {
         this.state = {
             squares: initializeBoard(),
             source: -1,
+            turn: 'w',
         };
     }
 
     handleClick(i) {
         const copy_squares = this.state.squares.slice();
-        if (this.state.source == -1) {
-            if (copy_squares[i] != null) {
+
+        // first click
+        if (this.state.source == -1) { // source is non-clicked
+            var stealing = (copy_squares[i].player != this.state.turn);
+            if (copy_squares[i] != null && stealing == false) {
                 copy_squares[i].underlay = 1;
                 this.setState( {
-                    source: i,
-                    squares:copy_squares,
+                    source: i, // set the source to the first click
+                    squares: copy_squares,
                 });
             }
         }
+
+        // second click (to move piece from the source)
         if (this.state.source > -1) {
-            if (i != this.state.source) {
+            var cannibalism = false;
+            if (copy_squares[i] != null) {
+                cannibalism = (copy_squares[i].player == copy_squares[this.state.source].player);
+                console.log(cannibalism);
+            }
+            if (i != this.state.source && cannibalism == false) {
                 copy_squares[i] = copy_squares[this.state.source];
                 copy_squares[this.state.source] = null;
+                copy_squares[i].underlay = 0;
+                this.setState( {
+                    turn: (this.state.turn == 'w' ? 'b':'w'),
+                });
+            } else {
+                copy_squares[this.state.source].underlay = 0;
             }
-            copy_squares[i].underlay = 0;
+
             this.setState( {
-                source: -1,
-                squares:copy_squares,
+                source: -1, // set source back to non-clicked
+                squares: copy_squares,
             });
         }
-        this.setState( {
-            squares: copy_squares,
-        });
+
     }
 
     // Render the board.
@@ -186,6 +201,9 @@ class Board extends React.Component {
 
         return (
             <div>
+                <h1>
+                    Turn: {this.state.turn == 'w' ? 'white':'black'}
+                </h1>
                 <div className="table">
                     {board}
                 </div>
