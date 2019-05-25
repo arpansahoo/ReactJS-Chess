@@ -9,6 +9,8 @@ body, html {
 	font-size: 80px;
 	height: 80px;
 	width: 80px;
+	transition: background-color 0.7s;
+	-webkit-transition: background-color 0.7s;
 }
 
 .selected_white_square {

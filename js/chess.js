@@ -155,6 +155,19 @@ class Rook {
     }
 }
 
+class filler_piece {
+    constructor(player) {
+        this.player = player;
+        this.underlay = 0;
+        this.icon = null;
+        this.ascii = null;
+    }
+
+    can_move(start, end) {
+        return false;
+    }
+}
+
 function Square(props) {
     if (props.value != null) {
         return (
@@ -200,10 +213,12 @@ class Board extends React.Component {
         const copy_squares = this.state.squares.slice();
 
         // first click
-        if (this.state.source == -1) { // source is non-clicked
+        if (this.state.source == -1) { // no source has been selected yet
             var stealing = (copy_squares[i].player != this.state.turn);
+
+            //can only pick a piece that is your own && is not a blank square
             if (copy_squares[i] != null && stealing == false) {
-                copy_squares[i].underlay = 1;
+                copy_squares[i].underlay = 1; // highlight selected piece
                 this.setState( {
                     source: i, // set the source to the first click
                     squares: copy_squares,
@@ -211,30 +226,63 @@ class Board extends React.Component {
             }
         }
 
-        // second click (to move piece from the source)
+        // second click (to move piece from the source to destination)
         if (this.state.source > -1) {
             var cannibalism = false;
             if (copy_squares[i] != null) {
                 cannibalism = (copy_squares[i].player == copy_squares[this.state.source].player);
             }
 
-            // this block results in movement
-            if (i != this.state.source && cannibalism == false
-                && copy_squares[this.state.source].can_move(this.state.source, i) == true) {
-                    copy_squares[i] = copy_squares[this.state.source];
-                    copy_squares[this.state.source] = null;
-                    copy_squares[i].underlay = 0;
-                    this.setState( {
-                        turn: (this.state.turn == 'w' ? 'b':'w'),
-                    });
-            } else {
+            /* if user is trying to select one of her other pieces,
+             * change highlight to the new selection, but do not move any pieces
+             */
+            if (cannibalism == true && i != this.state.source) {
+                copy_squares[i].underlay = 1;
                 copy_squares[this.state.source].underlay = 0;
+                this.setState( {
+                    source: i, // set source to the new click
+                    squares: copy_squares,
+                });
+            } else { // user is trying to move her piece to empty space or to capture opponent's piece
+                // this block results in actual movement if piece can legally make the move
+                if (i != this.state.source
+                    && copy_squares[this.state.source].can_move(this.state.source, i) == true) {
+                        copy_squares[i] = copy_squares[this.state.source];
+                        copy_squares[i].underlay = 1;
+                        copy_squares[this.state.source] = new filler_piece(this.state.turn);
+                        copy_squares[this.state.source].underlay = 1;
+
+                        // clear any highlights from last turn after move is made 
+                        for (let i = 0; i < 64; i++) {
+                            if (copy_squares[i] != null && copy_squares[i].underlay == 1) {
+                                    if (copy_squares[i].player != this.state.turn) {
+                                        copy_squares[i].underlay = 0;
+                                    }
+                            }
+                        }
+                        copy_squares[this.state.source].player = null;
+
+                        this.setState( {
+                            turn: (this.state.turn == 'w' ? 'b':'w'),
+                            source: -1, // set source back to non-clicked
+                            squares: copy_squares,
+                        });
+                } else {
+                    if (i == this.state.source) {
+                        copy_squares[this.state.source].underlay = 0;
+                        this.setState( {
+                            source: -1,
+                            squares: copy_squares,
+                        });
+                    } else {
+                        this.setState( {
+                            squares: copy_squares,
+                        });
+                    }
+                }
+
             }
 
-            this.setState( {
-                source: -1, // set source back to non-clicked
-                squares: copy_squares,
-            });
         }
 
     }
