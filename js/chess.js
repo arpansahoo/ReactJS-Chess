@@ -200,13 +200,35 @@ class Board extends React.Component {
         var start_col = start % 8 + 1;
         var end_row = 8 - Math.floor(end / 8);
         var end_col = end % 8 + 1;
+        let row_diff = end_row - start_row;
+        let col_diff = end_col - start_col;
+        let row_ctr = 0;
+        let col_ctr = 0;
+        const copy_squares = this.state.squares.slice();
 
-        var row_diff = end_row - start_row;
-        var col_diff = end_col - start_col;
+        while (col_ctr != col_diff || row_ctr != row_diff) {
+            let position = ((64 - (start_row * 8)) + (-8 * row_ctr)) + (start_col - 1 + col_ctr);
+            if (copy_squares[position].ascii != null && copy_squares[position] != copy_squares[start]) {
+                return false;
+            }
+            if (col_ctr != col_diff) {
+                if (col_diff > 0) {
+                    ++col_ctr;
+                } else {
+                    --col_ctr;
+                }
+            }
 
-        if (col_diff == 0) {
-
+            if (row_ctr != row_diff) {
+                if (row_diff > 0) {
+                    ++row_ctr;
+                } else {
+                    --row_ctr;
+                }
+            }
         }
+
+        return true;
     }
 
     handleClick(i) {
@@ -245,26 +267,35 @@ class Board extends React.Component {
                 // this block results in actual movement if piece can legally make the move
                 if (i != this.state.source
                     && copy_squares[this.state.source].can_move(this.state.source, i) == true) {
-                        copy_squares[i] = copy_squares[this.state.source];
-                        copy_squares[i].highlight = 1;
-                        copy_squares[this.state.source] = new filler_piece(this.state.turn);
-                        copy_squares[this.state.source].highlight = 1;
 
-                        // clear any highlights from last turn after move is made
-                        for (let i = 0; i < 64; i++) {
-                            if (copy_squares[i].highlight == 1) {
-                                    if (copy_squares[i].player != this.state.turn) {
-                                        copy_squares[i].highlight = 0;
-                                    }
+                        var bqr = copy_squares[this.state.source].ascii == 'r' ||
+                            copy_squares[this.state.source].ascii == 'R';
+
+                        let invalid = bqr
+                            && this.check_blockers(this.state.source, i) == false;
+
+                        if (invalid != true) {
+                            copy_squares[i] = copy_squares[this.state.source];
+                            copy_squares[i].highlight = 1;
+                            copy_squares[this.state.source] = new filler_piece(this.state.turn);
+                            copy_squares[this.state.source].highlight = 1;
+
+                            // clear any highlights from last turn after move is made
+                            for (let i = 0; i < 64; i++) {
+                                if (copy_squares[i].highlight == 1) {
+                                        if (copy_squares[i].player != this.state.turn) {
+                                            copy_squares[i].highlight = 0;
+                                        }
+                                }
                             }
-                        }
-                        copy_squares[this.state.source].player = null;
+                            copy_squares[this.state.source].player = null;
 
-                        this.setState( {
-                            turn: (this.state.turn == 'w' ? 'b':'w'),
-                            source: -1, // set source back to non-clicked
-                            squares: copy_squares,
-                        });
+                            this.setState( {
+                                turn: (this.state.turn == 'w' ? 'b':'w'),
+                                source: -1, // set source back to non-clicked
+                                squares: copy_squares,
+                            });
+                        }
                 } else {
                     if (i == this.state.source) {
                         copy_squares[this.state.source].highlight = 0;
