@@ -9,7 +9,32 @@ class King {
     }
 
     can_move(start, end) {
-        return true;
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff == 1 && col_diff == -1) {
+            return true;
+        } else if (row_diff == 1 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 1 && col_diff == 1) {
+            return true;
+        } else if (row_diff == 0 && col_diff == 1) {
+            return true;
+        } else if (row_diff == -1 && col_diff == 1) {
+            return true;
+        } else if (row_diff == -1 && col_diff == 0) {
+            return true;
+        } else if (row_diff == -1 && col_diff == -1) {
+            return true;
+        } else if (row_diff == 0 && col_diff == -1) {
+            return true;
+        }
+        return false;
     }
 }
 
@@ -109,7 +134,24 @@ class Rook {
     }
 
     can_move(start, end) {
-        return true;
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff > 0 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 0 && col_diff > 0) {
+            return true;
+        } else if (row_diff < 0 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 0 && col_diff < 0) {
+            return true;
+        }
+        return false;
     }
 }
 
@@ -161,6 +203,8 @@ class Board extends React.Component {
             if (copy_squares[i] != null) {
                 cannibalism = (copy_squares[i].player == copy_squares[this.state.source].player);
             }
+
+            // this block results in movement
             if (i != this.state.source && cannibalism == false
                 && copy_squares[this.state.source].can_move(this.state.source, i) == true) {
                     copy_squares[i] = copy_squares[this.state.source];
