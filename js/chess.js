@@ -1,238 +1,3 @@
-class King {
-    constructor(player) {
-        this.player = player;
-        this.highlight = 0;
-        this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg"></img>);
-        this.ascii = (player == 'w' ? 'k':'K');
-    }
-
-    can_move(start, end) {
-        var start_row = 8 - Math.floor(start / 8);
-        var start_col = start % 8 + 1;
-        var end_row = 8 - Math.floor(end / 8);
-        var end_col = end % 8 + 1;
-
-        var row_diff = end_row - start_row;
-        var col_diff = end_col - start_col;
-
-        if (row_diff == 1 && col_diff == -1) {
-            return true;
-        } else if (row_diff == 1 && col_diff == 0) {
-            return true;
-        } else if (row_diff == 1 && col_diff == 1) {
-            return true;
-        } else if (row_diff == 0 && col_diff == 1) {
-            return true;
-        } else if (row_diff == -1 && col_diff == 1) {
-            return true;
-        } else if (row_diff == -1 && col_diff == 0) {
-            return true;
-        } else if (row_diff == -1 && col_diff == -1) {
-            return true;
-        } else if (row_diff == 0 && col_diff == -1) {
-            return true;
-        }
-        return false;
-    }
-}
-
-class Queen {
-    constructor(player) {
-        this.player = player;
-        this.highlight = 0;
-        this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg"></img>);
-        this.ascii = (player == 'w' ? 'q':'Q');
-    }
-
-    can_move(start, end) {
-        var start_row = 8 - Math.floor(start / 8);
-        var start_col = start % 8 + 1;
-        var end_row = 8 - Math.floor(end / 8);
-        var end_col = end % 8 + 1;
-
-        var row_diff = end_row - start_row;
-        var col_diff = end_col - start_col;
-
-        if (row_diff > 0 && col_diff == 0) {
-            return true;
-        } else if (row_diff == 0 && col_diff > 0) {
-            return true;
-        } else if (row_diff < 0 && col_diff == 0) {
-            return true;
-        } else if (row_diff == 0 && col_diff < 0) {
-            return true;
-        } else if (row_diff == col_diff) {
-            return true;
-        } else if (row_diff == -col_diff) {
-            return true;
-        }
-        return false;
-    }
-}
-
-class Knight {
-    constructor(player) {
-        this.player = player;
-        this.highlight = 0;
-        this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg"></img>);
-        this.ascii = (player == 'w' ? 'n':'N');
-    }
-
-    can_move(start, end) {
-        var start_row = 8 - Math.floor(start / 8);
-        var start_col = start % 8 + 1;
-        var end_row = 8 - Math.floor(end / 8);
-        var end_col = end % 8 + 1;
-
-        var row_diff = end_row - start_row;
-        var col_diff = end_col - start_col;
-
-        if (row_diff == 1 && col_diff == -2) {
-            return true;
-        } else if (row_diff == 2 && col_diff == -1) {
-            return true;
-        } else if (row_diff == 2 && col_diff == 1) {
-            return true;
-        } else if (row_diff == 1 && col_diff == 2) {
-            return true;
-        } else if (row_diff == -1 && col_diff == 2) {
-            return true;
-        } else if (row_diff == -2 && col_diff == 1) {
-            return true;
-        } else if (row_diff == -2 && col_diff == -1) {
-            return true;
-        } else if (row_diff == -1 && col_diff == -2) {
-            return true;
-        }
-        return false;
-    }
-}
-
-class Bishop {
-    constructor(player) {
-        this.player = player;
-        this.highlight = 0;
-        this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg"></img>);
-        this.ascii = (player == 'w' ? 'b':'B');
-    }
-
-    can_move(start, end) {
-        var start_row = 8 - Math.floor(start / 8);
-        var start_col = start % 8 + 1;
-        var end_row = 8 - Math.floor(end / 8);
-        var end_col = end % 8 + 1;
-
-        var row_diff = end_row - start_row;
-        var col_diff = end_col - start_col;
-
-        if (row_diff == col_diff) {
-            return true;
-        } else if (row_diff == -col_diff) {
-            return true;
-        }
-        return false;
-    }
-
-}
-
-class Pawn {
-    constructor(player) {
-        this.player = player;
-        this.highlight = 0;
-        this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg"></img>);
-        this.ascii = (player == 'w' ? 'p':'P');
-    }
-
-    can_move(start, end) {
-        var start_row = 8 - Math.floor(start / 8);
-        var start_col = start % 8 + 1;
-        var end_row = 8 - Math.floor(end / 8);
-        var end_col = end % 8 + 1;
-
-        var row_diff = end_row - start_row;
-        var col_diff = end_col - start_col;
-
-        if (this.player == 'w') {
-            if (col_diff == 0) {
-                if (row_diff == 1 || row_diff == 2) {
-                    return true;
-                }
-            } else if (col_diff == -1 || col_diff == 1) {
-                if (row_diff == 1) {
-                    return true;
-                }
-            }
-        }
-        else {
-            if (col_diff == 0) {
-                if (row_diff == -2 || row_diff == -1) {
-                    return true;
-                }
-            } else if (col_diff == -1 || col_diff == 1) {
-                if (row_diff == -1) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-}
-
-class Rook {
-    constructor(player) {
-        this.player = player;
-        this.highlight = 0;
-        this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg"></img>);
-        this.ascii = (player == 'w' ? 'r':'R');
-    }
-
-    can_move(start, end) {
-        var start_row = 8 - Math.floor(start / 8);
-        var start_col = start % 8 + 1;
-        var end_row = 8 - Math.floor(end / 8);
-        var end_col = end % 8 + 1;
-
-        var row_diff = end_row - start_row;
-        var col_diff = end_col - start_col;
-
-        if (row_diff > 0 && col_diff == 0) {
-            return true;
-        } else if (row_diff == 0 && col_diff > 0) {
-            return true;
-        } else if (row_diff < 0 && col_diff == 0) {
-            return true;
-        } else if (row_diff == 0 && col_diff < 0) {
-            return true;
-        }
-        return false;
-    }
-}
-
-class filler_piece {
-    constructor(player) {
-        this.player = player;
-        this.highlight = 0;
-        this.icon = null;
-        this.ascii = null;
-    }
-
-    can_move(start, end) {
-        return false;
-    }
-}
-
 function Square(props) {
     if (props.value != null) {
         return (
@@ -394,6 +159,7 @@ class Board extends React.Component {
 
                         // this block results in actual movement if piece can legally make the move
                         if (this.invalid_move(this.state.source, i) == false) {
+
                             copy_squares[i] = copy_squares[this.state.source];
                             copy_squares[i].highlight = 1;
                             copy_squares[this.state.source] = new filler_piece(this.state.turn);
@@ -426,6 +192,7 @@ class Board extends React.Component {
                             });
 
                         }
+
                 } else {
                     // un-higlight selection if same square is clicked twice
                     if (i == this.state.source) {
@@ -436,11 +203,8 @@ class Board extends React.Component {
                         });
                     }
                 }
-
             }
-
         }
-
     }
 
     // Render the board.
@@ -520,24 +284,24 @@ class Board extends React.Component {
                     {board}
                 </div>
                 <div className="column_num">
-                    <Column_Square letter = 'A'/>
-                    <Column_Square letter = 'B'/>
-                    <Column_Square letter = 'C'/>
-                    <Column_Square letter = 'D'/>
-                    <Column_Square letter = 'E'/>
-                    <Column_Square letter = 'F'/>
-                    <Column_Square letter = 'G'/>
-                    <Column_Square letter = 'H'/>
+                    <Column_Label letter = 'A'/>
+                    <Column_Label letter = 'B'/>
+                    <Column_Label letter = 'C'/>
+                    <Column_Label letter = 'D'/>
+                    <Column_Label letter = 'E'/>
+                    <Column_Label letter = 'F'/>
+                    <Column_Label letter = 'G'/>
+                    <Column_Label letter = 'H'/>
                 </div>
                 <div className="row_num">
-                    <Row_Square letter = '8'/>
-                    <Row_Square letter = '7'/>
-                    <Row_Square letter = '6'/>
-                    <Row_Square letter = '5'/>
-                    <Row_Square letter = '4'/>
-                    <Row_Square letter = '3'/>
-                    <Row_Square letter = '2'/>
-                    <Row_Square letter = '1'/>
+                    <Row_Label letter = '8'/>
+                    <Row_Label letter = '7'/>
+                    <Row_Label letter = '6'/>
+                    <Row_Label letter = '5'/>
+                    <Row_Label letter = '4'/>
+                    <Row_Label letter = '3'/>
+                    <Row_Label letter = '2'/>
+                    <Row_Label letter = '1'/>
                 </div>
             </div>
         );
@@ -609,24 +373,252 @@ function initializeBoard() {
     return squares;
 }
 
-function Column_Square(props) {
-    return (
-        <button className = {"column_square label"}>
-            {props.letter}
-        </button>
-    );
-}
-
-function Row_Square(props) {
-    return (
-        <button className = {"row_square label"}>
-            {props.letter}
-        </button>
-    );
-}
-
 function isEven(value) {
     return value %2;
+}
+
+class King {
+    constructor(player) {
+        this.player = player;
+        this.highlight = 0;
+        this.icon = (player == 'w' ?
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg"></img>
+            : <img src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg"></img>);
+        this.ascii = (player == 'w' ? 'k':'K');
+    }
+
+    can_move(start, end) {
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff == 1 && col_diff == -1) {
+            return true;
+        } else if (row_diff == 1 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 1 && col_diff == 1) {
+            return true;
+        } else if (row_diff == 0 && col_diff == 1) {
+            return true;
+        } else if (row_diff == -1 && col_diff == 1) {
+            return true;
+        } else if (row_diff == -1 && col_diff == 0) {
+            return true;
+        } else if (row_diff == -1 && col_diff == -1) {
+            return true;
+        } else if (row_diff == 0 && col_diff == -1) {
+            return true;
+        }
+        return false;
+    }
+}
+class Queen {
+    constructor(player) {
+        this.player = player;
+        this.highlight = 0;
+        this.icon = (player == 'w' ?
+            <img src="https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg"></img>
+            : <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg"></img>);
+        this.ascii = (player == 'w' ? 'q':'Q');
+    }
+
+    can_move(start, end) {
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff > 0 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 0 && col_diff > 0) {
+            return true;
+        } else if (row_diff < 0 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 0 && col_diff < 0) {
+            return true;
+        } else if (row_diff == col_diff) {
+            return true;
+        } else if (row_diff == -col_diff) {
+            return true;
+        }
+        return false;
+    }
+}
+class Knight {
+    constructor(player) {
+        this.player = player;
+        this.highlight = 0;
+        this.icon = (player == 'w' ?
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg"></img>
+            : <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg"></img>);
+        this.ascii = (player == 'w' ? 'n':'N');
+    }
+
+    can_move(start, end) {
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff == 1 && col_diff == -2) {
+            return true;
+        } else if (row_diff == 2 && col_diff == -1) {
+            return true;
+        } else if (row_diff == 2 && col_diff == 1) {
+            return true;
+        } else if (row_diff == 1 && col_diff == 2) {
+            return true;
+        } else if (row_diff == -1 && col_diff == 2) {
+            return true;
+        } else if (row_diff == -2 && col_diff == 1) {
+            return true;
+        } else if (row_diff == -2 && col_diff == -1) {
+            return true;
+        } else if (row_diff == -1 && col_diff == -2) {
+            return true;
+        }
+        return false;
+    }
+}
+class Bishop {
+    constructor(player) {
+        this.player = player;
+        this.highlight = 0;
+        this.icon = (player == 'w' ?
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg"></img>
+            : <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg"></img>);
+        this.ascii = (player == 'w' ? 'b':'B');
+    }
+
+    can_move(start, end) {
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff == col_diff) {
+            return true;
+        } else if (row_diff == -col_diff) {
+            return true;
+        }
+        return false;
+    }
+
+}
+class Pawn {
+    constructor(player) {
+        this.player = player;
+        this.highlight = 0;
+        this.icon = (player == 'w' ?
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg"></img>
+            : <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg"></img>);
+        this.ascii = (player == 'w' ? 'p':'P');
+    }
+
+    can_move(start, end) {
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (this.player == 'w') {
+            if (col_diff == 0) {
+                if (row_diff == 1 || row_diff == 2) {
+                    return true;
+                }
+            } else if (col_diff == -1 || col_diff == 1) {
+                if (row_diff == 1) {
+                    return true;
+                }
+            }
+        }
+        else {
+            if (col_diff == 0) {
+                if (row_diff == -2 || row_diff == -1) {
+                    return true;
+                }
+            } else if (col_diff == -1 || col_diff == 1) {
+                if (row_diff == -1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+class Rook {
+    constructor(player) {
+        this.player = player;
+        this.highlight = 0;
+        this.icon = (player == 'w' ?
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg"></img>
+            : <img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg"></img>);
+        this.ascii = (player == 'w' ? 'r':'R');
+    }
+
+    can_move(start, end) {
+        var start_row = 8 - Math.floor(start / 8);
+        var start_col = start % 8 + 1;
+        var end_row = 8 - Math.floor(end / 8);
+        var end_col = end % 8 + 1;
+
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
+
+        if (row_diff > 0 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 0 && col_diff > 0) {
+            return true;
+        } else if (row_diff < 0 && col_diff == 0) {
+            return true;
+        } else if (row_diff == 0 && col_diff < 0) {
+            return true;
+        }
+        return false;
+    }
+}
+class filler_piece {
+    constructor(player) {
+        this.player = player;
+        this.highlight = 0;
+        this.icon = null;
+        this.ascii = null;
+    }
+
+    can_move(start, end) {
+        return false;
+    }
+}
+
+function Column_Label(props) {
+    return (
+        <button className = {"Column_Label label"}>
+            {props.letter}
+        </button>
+    );
+}
+function Row_Label(props) {
+    return (
+        <button className = {"Row_Label label"}>
+            {props.letter}
+        </button>
+    );
 }
 
 ReactDOM.render(

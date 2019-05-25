@@ -57,7 +57,7 @@ body, html {
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
-.column_square {
+.column_label {
 	border: 20px;
 	float: left;
 	font-size: 80px;
@@ -90,7 +90,7 @@ body, html {
 	height: 0px;
 }
 
-.row_square {
+.row_label {
 	border: 20px;
 	float: left;
 	font-size: 80px;
