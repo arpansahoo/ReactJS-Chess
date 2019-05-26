@@ -5,6 +5,7 @@ body, html {
 
 .square {
 	border: none;
+	border-width: 0px;
 	float: left;
 	font-size: 80px;
 	height: 80px;
@@ -20,6 +21,14 @@ body, html {
 
 .selected_black_square {
 	background-color:#00c070;
+}
+
+.highlighted_white_square {
+	background-color:#94fffe;
+}
+
+.highlighted_black_square {
+	background-color:#77e1d7;
 }
 
 .white_square {
