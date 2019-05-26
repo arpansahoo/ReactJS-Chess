@@ -19,6 +19,10 @@ body, html {
 	background-color:#00e686;
 }
 
+.stale_square {
+	background-color:#ffac2c;
+}
+
 .selected_black_square {
 	background-color:#00c070;
 }
@@ -29,6 +33,10 @@ body, html {
 
 .highlighted_black_square {
 	background-color:#77e1d7;
+}
+
+.checked_square {
+	background-color:#ff4233;
 }
 
 .white_square {

@@ -23,7 +23,18 @@ class Board extends React.Component {
             source: -1,
             turn: 'w',
             turn_num: 1,
+            game_over: 0,
         };
+    }
+
+    reset() {
+        this.setState( {
+            squares: initializeBoard(),
+            source: -1,
+            turn: 'w',
+            turn_num: 1,
+            game_over: 0,
+        });
     }
 
     check_blockers(start, end, squares) {
@@ -223,117 +234,211 @@ class Board extends React.Component {
     handleClick(i) {
         const copy_squares = this.state.squares.slice();
 
-        // first click
-        if (this.state.source == -1) { // no source has been selected yet
-            var stealing = (copy_squares[i].player != this.state.turn);
+        let check_mated = this.checkmate('w', copy_squares) || this.checkmate('b', copy_squares);
+        let stale_mated = this.stalemate('w', copy_squares) || this.stalemate('b', copy_squares);
 
-            //can only pick a piece that is your own && is not a blank square
-            if (copy_squares[i].player != null && stealing == false) {
-                copy_squares[i].highlight = 1; // highlight selected piece
-
-                for (let j = 0; j < 64; j++) {
-                    if (this.can_move_there(i, j, copy_squares)) {
-                        copy_squares[j].possible = 1;
-                    }
+        if (!check_mated && !stale_mated) {
+            for (let j = 0; j < 64; j++) {
+                if (copy_squares[j].checked == 1) {
+                    copy_squares[j].checked = 0;
                 }
-
-                this.setState( {
-                    source: i, // set the source to the first click
-                    squares: copy_squares,
-                });
             }
-        }
 
-        // second click (to move piece from the source to destination)
-        if (this.state.source > -1) {
-            var cannibalism = false;
-            cannibalism = (copy_squares[i].player == copy_squares[this.state.source].player);
+            // first click
+            if (this.state.source == -1) { // no source has been selected yet
+                var stealing = (copy_squares[i].player != this.state.turn);
 
-            /* if user is trying to select one of her other pieces,
-             * change highlight to the new selection, but do not move any pieces
-             */
-            if (cannibalism == true && i != this.state.source) {
-                copy_squares[i].highlight = 1;
-                copy_squares[this.state.source].highlight = 0;
-                for (let j = 0; j < 64; j++) {
-                    if (copy_squares[j].possible == 1) {
-                        copy_squares[j].possible = 0;
-                    }
-                }
-                for (let j = 0; j < 64; j++) {
-                    if (this.can_move_there(i, j, copy_squares)) {
-                        copy_squares[j].possible = 1;
-                    }
-                }
-                this.setState( {
-                    source: i, // set source to the new click
-                    squares: copy_squares,
-                });
-            } else { // user is trying to move her piece to empty space or to capture opponent's piece
-
-                // this block results in actual movement if piece can legally make the move
-                if (i != this.state.source
-                    && copy_squares[this.state.source].can_move(this.state.source, i) == true
-                    && this.invalid_move(this.state.source, i, this.state.squares) == false) {
-
-                        copy_squares[i] = copy_squares[this.state.source];
-                        copy_squares[i].highlight = 1;
-                        copy_squares[this.state.source] = new filler_piece(this.state.turn);
-                        copy_squares[this.state.source].highlight = 1;
-
-                        // pawn promotion
-                        if (copy_squares[i].ascii == 'p' && (i >= 0 && i <= 7)) {
-                            copy_squares[i] = new Queen('w');
-                            copy_squares[i].highlight = 1;
-                        } else if (copy_squares[i].ascii == 'P' && (i >= 56 && i <= 63)) {
-                            copy_squares[i] = new Queen('b');
-                            copy_squares[i].highlight = 1;
+                // highlight king in red if player clicks on a piece that won't
+                // get it out of check
+                let can_it_move = false;
+                if (copy_squares[i].player != null && stealing == false) {
+                    for (let j = 0; j < 64; j++) {
+                        if (this.can_move_there(i, j, copy_squares)) {
+                            can_it_move = true;
+                            break;
                         }
-
-                        // clear any highlights from last turn after move is made
-                        for (let i = 0; i < 64; i++) {
-                            if (copy_squares[i].highlight == 1) {
-                                if (copy_squares[i].player != this.state.turn) {
-                                    copy_squares[i].highlight = 0;
-                                }
-                            }
-                            if (copy_squares[i].possible == 1) {
-                                copy_squares[i].possible = 0;
+                    }
+                    if (this.in_check('w', copy_squares) && !can_it_move) {
+                        for (let j = 0; j < 64; j++) {
+                            if (copy_squares[j].ascii == 'k') {
+                                copy_squares[j].checked = 1;
+                                break;
                             }
                         }
-                        copy_squares[this.state.source].player = null;
-
                         this.setState( {
-                            turn: (this.state.turn == 'w' ? 'b':'w'),
-                            turn_num: (this.state.turn_num + 1),
-                            source: -1, // set source back to non-clicked
                             squares: copy_squares,
                         });
+                    }
+                    if (this.in_check('b', copy_squares) && !can_it_move) {
+                        for (let j = 0; j < 64; j++) {
+                            if (copy_squares[j].ascii == 'K') {
+                                copy_squares[j].checked = 1;
+                                break;
+                            }
+                        }
+                        this.setState( {
+                            squares: copy_squares,
+                        });
+                    }
+                }
 
-                } else {
-                    // un-highlight selection if invalid move was attempted
-                    copy_squares[this.state.source].highlight = 0;
-                    for (let i = 0; i < 64; i++) {
-                        if (copy_squares[i].possible == 1) {
-                            copy_squares[i].possible = 0;
+                //can only pick a piece that is your own && is not a blank square
+                if (copy_squares[i].player != null && stealing == false) {
+                    copy_squares[i].highlight = 1; // highlight selected piece
+
+                    for (let j = 0; j < 64; j++) {
+                        if (this.can_move_there(i, j, copy_squares)) {
+                            copy_squares[j].possible = 1;
                         }
                     }
+
                     this.setState( {
-                        source: -1,
+                        source: i, // set the source to the first click
                         squares: copy_squares,
                     });
                 }
             }
-        }
-    }
 
-    reset() {
-        this.setState( {
-            squares: initializeBoard(),
-            source: -1,
-            turn: 'w',
-            turn_num: 1,
-        });
+            // second click (to move piece from the source to destination)
+            if (this.state.source > -1) {
+                var cannibalism = false;
+                cannibalism = (copy_squares[i].player == copy_squares[this.state.source].player);
+
+                /* if user is trying to select one of her other pieces,
+                 * change highlight to the new selection, but do not move any pieces
+                 */
+                if (cannibalism == true && i != this.state.source) {
+                    copy_squares[i].highlight = 1;
+                    copy_squares[this.state.source].highlight = 0;
+                    for (let j = 0; j < 64; j++) {
+                        if (copy_squares[j].possible == 1) {
+                            copy_squares[j].possible = 0;
+                        }
+                        if (copy_squares[j].checked == 1) {
+                            copy_squares[j].checked = 0;
+                        }
+                    }
+                    for (let j = 0; j < 64; j++) {
+                        if (this.can_move_there(i, j, copy_squares)) {
+                            copy_squares[j].possible = 1;
+                        }
+                    }
+                    this.setState( {
+                        source: i, // set source to the new click
+                        squares: copy_squares,
+                    });
+                } else { // user is trying to move her piece to empty space or to capture opponent's piece
+
+                    // this block results in actual movement if piece can legally make the move
+                    if (i != this.state.source
+                        && copy_squares[this.state.source].can_move(this.state.source, i) == true
+                        && this.invalid_move(this.state.source, i, this.state.squares) == false) {
+
+                            copy_squares[i] = copy_squares[this.state.source];
+                            copy_squares[i].highlight = 1;
+                            copy_squares[this.state.source] = new filler_piece(this.state.turn);
+                            copy_squares[this.state.source].highlight = 1;
+
+                            // pawn promotion
+                            if (copy_squares[i].ascii == 'p' && (i >= 0 && i <= 7)) {
+                                copy_squares[i] = new Queen('w');
+                                copy_squares[i].highlight = 1;
+                            } else if (copy_squares[i].ascii == 'P' && (i >= 56 && i <= 63)) {
+                                copy_squares[i] = new Queen('b');
+                                copy_squares[i].highlight = 1;
+                            }
+
+                            // clear any highlights from last turn after move is made
+                            for (let j = 0; j < 64; j++) {
+                                if (copy_squares[j].highlight == 1) {
+                                    if (copy_squares[j].player != this.state.turn) {
+                                        copy_squares[j].highlight = 0;
+                                    }
+                                }
+                                if (copy_squares[j].possible == 1) {
+                                    copy_squares[j].possible = 0;
+                                }
+                                if (copy_squares[j].checked == 1) {
+                                    copy_squares[j].checked = 0;
+                                }
+                            }
+                            copy_squares[this.state.source].player = null;
+
+                            this.setState( {
+                                turn: (this.state.turn == 'w' ? 'b':'w'),
+                                turn_num: (this.state.turn_num + 1),
+                                source: -1, // set source back to non-clicked
+                                squares: copy_squares,
+                            });
+
+                    } else {
+                        // highlight king in red if in check and an invalid move was picked
+                        // thereby not getting out of check
+                        if (this.in_check('w', copy_squares)) {
+                            for (let j = 0; j < 64; j++) {
+                                if (copy_squares[j].ascii == 'k') {
+                                    copy_squares[j].checked = 1;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (this.in_check('b', copy_squares)) {
+                            for (let j = 0; j < 64; j++) {
+                                if (copy_squares[j].ascii == 'K') {
+                                    copy_squares[j].checked = 1;
+                                    break;
+                                }
+                            }
+                        }
+
+
+                        // un-highlight selection if invalid move was attempted
+                        copy_squares[this.state.source].highlight = 0;
+                        for (let j = 0; j < 64; j++) {
+                            if (copy_squares[j].possible == 1) {
+                                copy_squares[j].possible = 0;
+                            }
+                            if (i == this.state.source && copy_squares[j].checked == 1) {
+                                copy_squares[j].checked = 0;
+                            }
+                        }
+                        this.setState( {
+                            source: -1,
+                            squares: copy_squares,
+                        });
+                    }
+                }
+            }
+
+            check_mated = this.checkmate('w', copy_squares) || this.checkmate('b', copy_squares);
+            stale_mated = this.stalemate('w', copy_squares) || this.stalemate('b', copy_squares);
+
+            if (check_mated) {
+                for (let j = 0; j < 64; j++) {
+                    if (copy_squares[j].ascii == (this.checkmate('w', copy_squares) ? 'k':'K')) {
+                        copy_squares[j].checked = 1;
+                        break;
+                    }
+                }
+                this.setState( {
+                    squares: copy_squares,
+                    game_over: 1,
+                });
+            }
+            if (stale_mated) {
+                for (let j = 0; j < 64; j++) {
+                    if (copy_squares[j].ascii == (this.stalemate('w', copy_squares) ? 'k':'K')) {
+                        copy_squares[j].checked = 2;
+                        break;
+                    }
+                }
+                this.setState( {
+                    squares: copy_squares,
+                    game_over: 1,
+                });
+            }
+        }
     }
 
     // Render the board.
@@ -350,6 +455,10 @@ class Board extends React.Component {
                     if (this.state.squares[(i*8) + j].possible == 1) {
                         square_color = "highlighted_white_square";
                     }
+                    if (this.state.squares[(i*8) + j].checked >= 1) {
+                        square_color = (this.state.squares[(i*8) + j].checked == 1)
+                        ? "checked_square":"stale_square";
+                    }
                     squareRows.push(<Square
                         value = {this.state.squares[(i*8) + j]}
                         color = {square_color}
@@ -361,6 +470,10 @@ class Board extends React.Component {
                         ? "black_square":"selected_black_square";
                     if (this.state.squares[(i*8) + j].possible == 1) {
                         square_color = "highlighted_black_square";
+                    }
+                    if (this.state.squares[(i*8) + j].checked >= 1) {
+                        square_color = (this.state.squares[(i*8) + j].checked == 1)
+                        ? "checked_square":"stale_square";
                     }
                     squareRows.push(<Square
                         value = {this.state.squares[(i*8) + j]}
@@ -374,6 +487,10 @@ class Board extends React.Component {
                     if (this.state.squares[(i*8) + j].possible == 1) {
                         square_color = "highlighted_black_square";
                     }
+                    if (this.state.squares[(i*8) + j].checked >= 1) {
+                        square_color = (this.state.squares[(i*8) + j].checked == 1)
+                        ? "checked_square":"stale_square";
+                    }
                     squareRows.push(<Square
                         value = {this.state.squares[(i*8) + j]}
                         color = {square_color}
@@ -385,6 +502,10 @@ class Board extends React.Component {
                         ? "white_square":"selected_white_square";
                     if (this.state.squares[(i*8) + j].possible == 1) {
                         square_color = "highlighted_white_square";
+                    }
+                    if (this.state.squares[(i*8) + j].checked >= 1) {
+                        square_color = (this.state.squares[(i*8) + j].checked == 1)
+                        ? "checked_square":"stale_square";
                     }
                     squareRows.push(<Square
                         value = {this.state.squares[(i*8) + j]}
@@ -400,6 +521,10 @@ class Board extends React.Component {
                             square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
                             ? "highlighted_white_square" : "highlighted_black_square";
                         }
+                        if (this.state.squares[(i*8) + j].checked >= 1) {
+                            square_color = (this.state.squares[(i*8) + j].checked == 1)
+                            ? "checked_square":"stale_square";
+                        }
                         squareRows.push(<Square
                             value = {this.state.squares[(i*8) + j]}
                             color = {square_color}
@@ -413,6 +538,10 @@ class Board extends React.Component {
                         if (this.state.squares[(i*8) + j].possible == 1) {
                             square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
                             ? "highlighted_white_square" : "highlighted_black_square";
+                        }
+                        if (this.state.squares[(i*8) + j].checked >= 1) {
+                            square_color = (this.state.squares[(i*8) + j].checked == 1)
+                            ? "checked_square":"stale_square";
                         }
                         const copy_squares = this.state.squares.slice();
                         squareRows.push(<Square
@@ -559,6 +688,7 @@ class King {
         this.player = player;
         this.highlight = 0;
         this.possible = 0;
+        this.checked = 0;
         this.icon = (player == 'w' ?
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg"></img>
             : <img src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg"></img>);
