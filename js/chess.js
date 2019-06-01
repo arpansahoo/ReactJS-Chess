@@ -541,65 +541,88 @@ class Board extends React.Component {
         }
 
         return (
+
             <div>
-                <h1>
-                    Turn: {this.state.turn == 'w' ? 'white':'black'}
-                </h1>
-                <h1>
-                    Turn_Num: {this.state.turn_num}
-                </h1>
-                <h2>
-                    {this.in_check('w', this.state.squares) == true ? 'White - Check': ''}
-                </h2>
-                <h2>
-                    {this.in_check('b', this.state.squares) == true ? 'Black - Check':''}
-                </h2>
-                <h2>
-                    {this.checkmate('w', this.state.squares) == true ? 'White - Checkmate!':''}
-                </h2>
-                <h2>
-                    {this.checkmate('b', this.state.squares) == true ? 'Black - Checkmate!':''}
-                </h2>
-                <h2>
-                    {this.stalemate('w', this.state.squares) == true ? 'White - Stalemate!':''}
-                </h2>
-                <h2>
-                    {this.stalemate('b', this.state.squares) == true ? 'Black - Stalemate!':''}
-                </h2>
-                <div>
-                    <button onClick={() => this.reset()}>
-                        <h3>
-                        Press me to reset the game!
-                        </h3>
-                    </button>
+
+            <div className="left_screen">
+                <div className="title_box">
+                    <h1>Pokémon Chess!</h1>
                 </div>
+            </div>
+
+            <div className="right_screen">
                 <div className="table">
                     {board}
                 </div>
-                <div className="column_num">
-                    <Column_Label letter = 'A'/>
-                    <Column_Label letter = 'B'/>
-                    <Column_Label letter = 'C'/>
-                    <Column_Label letter = 'D'/>
-                    <Column_Label letter = 'E'/>
-                    <Column_Label letter = 'F'/>
-                    <Column_Label letter = 'G'/>
-                    <Column_Label letter = 'H'/>
-                </div>
-                <div className="row_num">
-                    <Row_Label letter = '8'/>
-                    <Row_Label letter = '7'/>
-                    <Row_Label letter = '6'/>
-                    <Row_Label letter = '5'/>
-                    <Row_Label letter = '4'/>
-                    <Row_Label letter = '3'/>
-                    <Row_Label letter = '2'/>
-                    <Row_Label letter = '1'/>
-                </div>
             </div>
+
+            </div>
+
         );
     }
 }
+
+
+
+/*
+<img src="./images/logo.png" className="logo"></img>
+
+<h1>
+    Turn: {this.state.turn == 'w' ? 'white':'black'}
+</h1>
+<h1>
+    Turn_Num: {this.state.turn_num}
+</h1>
+<h2>
+    {this.in_check('w', this.state.squares) == true ? 'White - Check': ''}
+</h2>
+<h2>
+    {this.in_check('b', this.state.squares) == true ? 'Black - Check':''}
+</h2>
+<h2>
+    {this.checkmate('w', this.state.squares) == true ? 'White - Checkmate!':''}
+</h2>
+<h2>
+    {this.checkmate('b', this.state.squares) == true ? 'Black - Checkmate!':''}
+</h2>
+<h2>
+    {this.stalemate('w', this.state.squares) == true ? 'White - Stalemate!':''}
+</h2>
+<h2>
+    {this.stalemate('b', this.state.squares) == true ? 'Black - Stalemate!':''}
+</h2>
+<div>
+    <button onClick={() => this.reset()}>
+        <h3>
+        Press me to reset the game!
+        </h3>
+    </button>
+</div>
+*/
+
+
+/*
+<div className="column">
+    <Column_element letter = 'A'/>
+    <Column_element letter = 'B'/>
+    <Column_element letter = 'C'/>
+    <Column_element letter = 'D'/>
+    <Column_element letter = 'E'/>
+    <Column_element letter = 'F'/>
+    <Column_element letter = 'G'/>
+    <Column_element letter = 'H'/>
+</div>
+<div className="row">
+    <Row_element letter = '8'/>
+    <Row_element letter = '7'/>
+    <Row_element letter = '6'/>
+    <Row_element letter = '5'/>
+    <Row_element letter = '4'/>
+    <Row_element letter = '3'/>
+    <Row_element letter = '2'/>
+    <Row_element letter = '1'/>
+</div>
+*/
 
 class Game extends React.Component {
     render() {
@@ -677,8 +700,8 @@ class King {
         this.possible = 0;
         this.checked = 0;
         this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg"></img>);
+            <img src="./images/white_king.png" className="piece"></img>
+            : <img src="./images/black_king.png" className="piece"></img>);
         this.ascii = (player == 'w' ? 'k':'K');
     }
 
@@ -717,8 +740,8 @@ class Queen {
         this.highlight = 0;
         this.possible = 0;
         this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg"></img>);
+            <img src="./images/white_queen.png" className="piece"></img>
+            : <img src="./images/black_queen.png" className="piece"></img>);
         this.ascii = (player == 'w' ? 'q':'Q');
     }
 
@@ -753,8 +776,8 @@ class Knight {
         this.highlight = 0;
         this.possible = 0;
         this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg"></img>);
+            <img src="./images/white_knight.png" className="piece"></img>
+            : <img src="./images/black_knight.png" className="piece"></img>);
         this.ascii = (player == 'w' ? 'n':'N');
     }
 
@@ -793,8 +816,8 @@ class Bishop {
         this.highlight = 0;
         this.possible = 0;
         this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg"></img>);
+            <img src="./images/white_bishop.png" className="piece"></img>
+            : <img src="./images/black_bishop.png" className="piece"></img>);
         this.ascii = (player == 'w' ? 'b':'B');
     }
 
@@ -822,8 +845,8 @@ class Pawn {
         this.highlight = 0;
         this.possible = 0;
         this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg"></img>);
+            <img src="./images/white_pawn.png" className="piece"></img>
+            : <img src="./images/black_pawn.png" className="piece"></img>);
         this.ascii = (player == 'w' ? 'p':'P');
     }
 
@@ -867,8 +890,8 @@ class Rook {
         this.highlight = 0;
         this.possible = 0;
         this.icon = (player == 'w' ?
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg"></img>
-            : <img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg"></img>);
+            <img src="./images/white_rook.png" className="piece"></img>
+            : <img src="./images/black_rook.png" className="piece"></img>);
         this.ascii = (player == 'w' ? 'r':'R');
     }
 
@@ -907,16 +930,16 @@ class filler_piece {
     }
 }
 
-function Column_Label(props) {
+function Column_element(props) {
     return (
-        <button className = {"Column_Label label"}>
+        <button className = {"column_element label"}>
             {props.letter}
         </button>
     );
 }
-function Row_Label(props) {
+function Row_element(props) {
     return (
-        <button className = {"Row_Label label"}>
+        <button className = {"row_element label"}>
             {props.letter}
         </button>
     );
