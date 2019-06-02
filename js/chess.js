@@ -29,7 +29,6 @@ class Board extends React.Component {
     }
 
     componentWillMount() {
-
     }
 
     reset() {
@@ -40,7 +39,7 @@ class Board extends React.Component {
             turn_num: 1,
             pieces_collected_by_white: [],
             pieces_collected_by_black: [],
-        });
+        } );
     }
 
     check_blockers(start, end, squares) {
@@ -142,8 +141,31 @@ class Board extends React.Component {
             copy_squares[start].ascii == 'P';
         invalid = pawn == true && this.check_pawn(start, end, squares) == false;
 
-
         return invalid;
+    }
+
+    in_check(player, squares) {
+        let king = (player == 'w' ? 'k':'K');
+        let position_of_king = null;
+        const copy_squares = squares.slice();
+        for (let i = 0; i < 64; i++) {
+            if (copy_squares[i].ascii == king) {
+                position_of_king = i;
+                break;
+            }
+        }
+
+        // traverse through the board and determine
+        // any of the opponent's pieces can legally take the player's king
+        for (let i = 0; i < 64; i++) {
+            if (copy_squares[i].player != null && copy_squares[i].player != player) {
+                if (copy_squares[i].can_move(i, position_of_king) == true
+                && this.invalid_move(i, position_of_king, squares) == false) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     can_move_there(start, end, squares) {
@@ -171,30 +193,6 @@ class Board extends React.Component {
         }
 
         return true;
-    }
-
-    in_check(player, squares) {
-        let king = (player == 'w' ? 'k':'K');
-        let position_of_king = null;
-        const copy_squares = squares.slice();
-        for (let i = 0; i < 64; i++) {
-            if (copy_squares[i].ascii == king) {
-                position_of_king = i;
-                break;
-            }
-        }
-
-        // traverse through the board and determine
-        // any of the opponent's pieces can legally take the player's king
-        for (let i = 0; i < 64; i++) {
-            if (copy_squares[i].player != null && copy_squares[i].player != player) {
-                if (copy_squares[i].can_move(i, position_of_king) == true
-                && this.invalid_move(i, position_of_king, squares) == false) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     stalemate(player, squares) {
@@ -295,13 +293,13 @@ class Board extends React.Component {
                     && copy_squares[this.state.source].can_move(this.state.source, i) == true
                     && this.invalid_move(this.state.source, i, this.state.squares) == false) {
 
+                        // when a piece is captured, record it
                         const copy_white_collection = this.state.pieces_collected_by_white.slice();
                         if (copy_squares[this.state.source].player == 'w' && copy_squares[i].ascii != null) {
                             copy_white_collection.push(<Collected
                                 value = {copy_squares[i]}/>
                             );
                         }
-
                         const copy_black_collection = this.state.pieces_collected_by_black.slice();
                         if (copy_squares[this.state.source].player == 'b' && copy_squares[i].ascii != null) {
                             copy_black_collection.push(<Collected
@@ -309,6 +307,7 @@ class Board extends React.Component {
                             );
                         }
 
+                        // make the move
                         copy_squares[i] = copy_squares[this.state.source];
                         copy_squares[i].highlight = 1;
                         copy_squares[this.state.source] = new filler_piece(this.state.turn);
@@ -394,7 +393,7 @@ class Board extends React.Component {
     // Render the board.
     render() {
         // Implementing a bot....
-        /*if (this.state.turn == 'b') {
+        if (this.state.turn == 'b') {
             const copy_squares = this.state.squares.slice();
             copy_squares[this.state.turn_num] = new King('b');
             this.setState( {
@@ -403,7 +402,7 @@ class Board extends React.Component {
                 source: -1, // set source back to non-clicked
                 squares: copy_squares,
             });
-        }*/
+        }
         const new_copy_squares = this.state.squares.slice();
         let position_of_king = null;
         const board = [];
@@ -562,6 +561,7 @@ class Board extends React.Component {
 
             <div>
 
+
             <div className="left_screen">
                 <div className="side_box">
                     <div className="content">
@@ -616,7 +616,7 @@ class Board extends React.Component {
                     <div className="button_wrapper">
                         <button className="reset_button" onClick={() => this.reset()}>
                             <p className="medium_font">
-                                <span>Restart Game</span>
+                                Restart Game
                             </p>
                         </button>
                     </div>
