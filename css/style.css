@@ -20,7 +20,7 @@ body, html {
 }
 
 .header_font {
-	font-size: 3em;
+	font-size: 2.7em;
 	line-height: 1;
 }
 
@@ -42,7 +42,7 @@ body, html {
 	border-radius: 3px;
 	box-shadow: 1px 1px 3px #232621;
 	position: relative;
-	top: calc(50% - 38vmin);
+	top: calc(50% - 40vmin);
 	left: 15%;
 	margin: 0 0 40 0;
 }
@@ -54,17 +54,20 @@ body, html {
 
 .player_box {
 	width: 45%;
-	background-color: #242424;
+	background-color: #deeaee;
 	padding: 0 15px 5px;
 	border-top-right-radius: 0px;
 	border-top-left-radius: 3px;
-	color: white;
+	color: black;
+	align-items: center;
+	align-content: center;
+	justify-content: center;
 	text-align: center;
 }
 
 .alt_color {
-	background-color: #deeaee;
-	color: black;
+	background-color: #242424;
+	color: white;
 	border-top-right-radius: 3px;
 	border-top-left-radius: 0px;
 }
@@ -99,19 +102,19 @@ body, html {
 }
 
 .reset_button {
-  display: inline-block;
-  position: relative;
-  padding: 0px 20px;
-  font-size: 0.7em;
-  cursor: pointer;
-  text-align: center;
-  outline: none;
-  color: white;
-  background-color: #00c070;
-  border: none;
-  border-radius: 10px;
-  box-shadow: 0 4px #444444;
-  transition: background-color 0.5s;
+	display: inline-block;
+	position: relative;
+	padding: 0px 20px;
+	font-size: 0.7em;
+	cursor: pointer;
+	text-align: center;
+	outline: none;
+	color: white;
+	background-color: #00c070;
+	border: none;
+	border-radius: 10px;
+	box-shadow: 0 4px #444444;
+	transition: background-color 0.5s;
 }
 
 .reset_button:hover {background-color: #00a25f}
@@ -166,20 +169,33 @@ body, html {
 }
 
 .piece {
-	height: 7vmin;
-	width: 7vmin;
+	height: 60%;
+	width: auto;
 }
 
 .square {
 	border: none;
 	border-width: 0px;
 	float: left;
-	font-size: 80px;
 	height: 10vmin;
 	width: 10vmin;
 	transition: background-color 0.7s;
 	-webkit-transition: background-color 0.7s;
 	cursor: pointer;
+}
+
+.collected {
+	border: none;
+	border-width: 0px;
+	background-color: transparent;
+	height: 4vmin;
+	width: 4vmin;
+	background-position: center;
+
+    background-size: 65%;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
 }
 
 .white_square {

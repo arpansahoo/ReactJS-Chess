@@ -23,6 +23,8 @@ class Board extends React.Component {
             source: -1,
             turn: 'w',
             turn_num: 1,
+            pieces_collected_by_white: [],
+            pieces_collected_by_black: [],
         };
     }
 
@@ -36,6 +38,8 @@ class Board extends React.Component {
             source: -1,
             turn: 'w',
             turn_num: 1,
+            pieces_collected_by_white: [],
+            pieces_collected_by_black: [],
         });
     }
 
@@ -138,7 +142,23 @@ class Board extends React.Component {
             copy_squares[start].ascii == 'P';
         invalid = pawn == true && this.check_pawn(start, end, squares) == false;
 
+
+        return invalid;
+    }
+
+    can_move_there(start, end, squares) {
+        var player = squares[start].player;
+
+        if (player == squares[end].player || squares[start].can_move(start, end) == false) {
+            return false;
+        }
+
+        if (this.invalid_move(start, end, squares) == true) {
+            return false;
+        }
+
         // player cannot put or keep herself in check
+        const copy_squares = squares.slice();
         copy_squares[end] = copy_squares[start];
         copy_squares[start] = new filler_piece(null);
         if (copy_squares[end].ascii == 'p' && (end >= 0 && end <= 7)) {
@@ -146,22 +166,11 @@ class Board extends React.Component {
         } else if (copy_squares[end].ascii == 'P' && (end >= 56 && end <= 63)) {
             copy_squares[end] = new Queen('b');
         }
-        if (this.in_check(copy_squares[end].player, copy_squares) == true) {
-            invalid = true;
+        if (this.in_check(player, copy_squares) == true) {
+            return false;
         }
 
-        return invalid;
-    }
-
-    can_move_there(start, end, squares) {
-        var player = squares[start].player;
-        if (squares[start].can_move(start, end) && this.invalid_move(start, end, squares) == false
-            && player != squares[end].player) {
-
-            return true;
-
-        }
-        return false;
+        return true;
     }
 
     in_check(player, squares) {
@@ -286,6 +295,20 @@ class Board extends React.Component {
                     && copy_squares[this.state.source].can_move(this.state.source, i) == true
                     && this.invalid_move(this.state.source, i, this.state.squares) == false) {
 
+                        const copy_white_collection = this.state.pieces_collected_by_white.slice();
+                        if (copy_squares[this.state.source].player == 'w' && copy_squares[i].ascii != null) {
+                            copy_white_collection.push(<Collected
+                                value = {copy_squares[i]}/>
+                            );
+                        }
+
+                        const copy_black_collection = this.state.pieces_collected_by_black.slice();
+                        if (copy_squares[this.state.source].player == 'b' && copy_squares[i].ascii != null) {
+                            copy_black_collection.push(<Collected
+                                value = {copy_squares[i]}/>
+                            );
+                        }
+
                         copy_squares[i] = copy_squares[this.state.source];
                         copy_squares[i].highlight = 1;
                         copy_squares[this.state.source] = new filler_piece(this.state.turn);
@@ -313,12 +336,17 @@ class Board extends React.Component {
                         }
                         copy_squares[this.state.source].player = null;
 
-                        this.setState( {
-                            turn: (this.state.turn == 'w' ? 'b':'w'),
-                            turn_num: (this.state.turn_num + 1),
-                            source: -1, // set source back to non-clicked
-                            squares: copy_squares,
-                        });
+                        // not allowed to put yourself in check
+                        if (!this.in_check(copy_squares[i].player, copy_squares)) {
+                            this.setState( {
+                                turn: (this.state.turn == 'w' ? 'b':'w'),
+                                turn_num: (this.state.turn_num + 1),
+                                source: -1, // set source back to non-clicked
+                                squares: copy_squares,
+                                pieces_collected_by_white: copy_white_collection,
+                                pieces_collected_by_black: copy_black_collection,
+                            });
+                        }
 
                 } else {
                     // un-highlight selection if invalid move was attempted
@@ -548,9 +576,11 @@ class Board extends React.Component {
                     <div className="wrapper">
                         <div className="player_box">
                             <p className="medium_font">White Player</p>
+                            {this.state.pieces_collected_by_white}
                         </div>
                         <div className="player_box alt_color">
                             <p className="medium_font">Black Player</p>
+                            {this.state.pieces_collected_by_black}
                         </div>
                     </div>
                     <div className="wrapper">
@@ -689,6 +719,13 @@ function Label(props) {
     );
 }
 
+function Collected(props) {
+    return (
+        <button className = {"collected"}>
+            {props.value.icon}
+        </button>
+    );
+}
 
 class King {
     constructor(player) {
