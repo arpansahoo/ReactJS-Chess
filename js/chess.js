@@ -233,40 +233,9 @@ class Board extends React.Component {
         // first click
         if (this.state.source == -1) { // no source has been selected yet
 
-            // get rid of red highlight for king if player has heeded warning
-            // and decided to pick a different piece to move
-            for (let j = 0; j < 64; j++) {
-                if (copy_squares[j].checked == 1) {
-                    copy_squares[j].checked = 0;
-                }
-            }
-
             // can only pick a piece that is your own
             if (copy_squares[i].player != this.state.turn) {
                 return -1;
-            }
-
-            // highlight king in red if player clicks on a piece that won't
-            // get it out of check
-            let can_it_move = false;
-            if (copy_squares[i].player != null) {
-                for (let j = 0; j < 64; j++) {
-                    if (this.can_move_there(i, j, copy_squares)) {
-                        can_it_move = true;
-                        break;
-                    }
-                }
-                if ((this.in_check('w', copy_squares) || this.in_check('b', copy_squares)) && !can_it_move) {
-                    for (let j = 0; j < 64; j++) {
-                        if (copy_squares[j].ascii == (this.in_check('w', copy_squares) ? 'k':'K')) {
-                            copy_squares[j].checked = 1;
-                            break;
-                        }
-                    }
-                    this.setState( {
-                        squares: copy_squares,
-                    });
-                }
             }
 
             //can only pick a piece that is not a blank square
@@ -299,9 +268,6 @@ class Board extends React.Component {
                 for (let j = 0; j < 64; j++) {
                     if (copy_squares[j].possible == 1) {
                         copy_squares[j].possible = 0;
-                    }
-                    if (copy_squares[j].checked == 1) {
-                        copy_squares[j].checked = 0;
                     }
                 }
                 for (let j = 0; j < 64; j++) {
@@ -344,9 +310,6 @@ class Board extends React.Component {
                             if (copy_squares[j].possible == 1) {
                                 copy_squares[j].possible = 0;
                             }
-                            if (copy_squares[j].checked == 1) {
-                                copy_squares[j].checked = 0;
-                            }
                         }
                         copy_squares[this.state.source].player = null;
 
@@ -358,25 +321,11 @@ class Board extends React.Component {
                         });
 
                 } else {
-                    // highlight king in red if in check and an invalid move was picked
-                    // thereby not getting out of check
-                    if (this.in_check('w', copy_squares) || this.in_check('b', copy_squares)) {
-                        for (let j = 0; j < 64; j++) {
-                            if (copy_squares[j].ascii == (this.in_check('w', copy_squares) ? 'k':'K')) {
-                                copy_squares[j].checked = 1;
-                                break;
-                            }
-                        }
-                    }
-
                     // un-highlight selection if invalid move was attempted
                     copy_squares[this.state.source].highlight = 0;
                     for (let j = 0; j < 64; j++) {
                         if (copy_squares[j].possible == 1) {
                             copy_squares[j].possible = 0;
-                        }
-                        if (i == this.state.source && copy_squares[j].checked == 1) {
-                            copy_squares[j].checked = 0;
                         }
                     }
                     this.setState( {
@@ -540,6 +489,47 @@ class Board extends React.Component {
             board.push(<div>{squareRows}</div>)
         }
 
+        const row_nums = [];
+        for (let i = 8; i > 0; i--) {
+            row_nums.push(<Label
+                value = {i} />
+            );
+        }
+
+        const col_nums = [];
+        for (let i = 1; i < 9; i++) {
+            let letter;
+            switch (i) {
+                case 1:
+                    letter = 'A';
+                    break;
+                case 2:
+                    letter = 'B';
+                    break;
+                case 3:
+                    letter = 'C';
+                    break;
+                case 4:
+                    letter = 'D';
+                    break;
+                case 5:
+                    letter = 'E';
+                    break;
+                case 6:
+                    letter = 'F';
+                    break;
+                case 7:
+                    letter = 'G';
+                    break;
+                case 8:
+                    letter = 'H';
+                    break;
+            }
+            col_nums.push(<Label
+                value = {letter} />
+            );
+        }
+
         return (
 
             <div>
@@ -563,6 +553,14 @@ class Board extends React.Component {
                             <p className="medium_font">Black Player</p>
                         </div>
                     </div>
+                    <div className="wrapper">
+                        {this.state.turn == 'w' ? <div className="highlight_box">
+                        </div> : <div className="highlight_box transparent">
+                        </div>}
+                        {this.state.turn == 'b' ? <div className="highlight_box">
+                        </div> : <div className="highlight_box transparent">
+                        </div>}
+                    </div>
                     <div className="content alt2">
                         <p className="medium_font">
                             {this.in_check('w', this.state.squares) && !this.checkmate('w', this.state.squares)
@@ -573,24 +571,38 @@ class Board extends React.Component {
                             && !this.stalemate('b', this.state.squares) == true ? 'Black player is in check.':''}
                         </p>
                         <p className="medium_font">
-                            {this.checkmate('w', this.state.squares) == true ? 'White player has been checkmated.':''}
+                            {this.checkmate('w', this.state.squares) == true ? 'White player has been checkmated. Game over.':''}
                         </p>
                         <p className="medium_font">
-                            {this.checkmate('b', this.state.squares) == true ? 'Blacke player has been checkmated.':''}
+                            {this.checkmate('b', this.state.squares) == true ? 'Black player has been checkmated. Game over.':''}
                         </p>
                         <p className="medium_font">
-                            {this.stalemate('w', this.state.squares) == true ? 'The match is in stalemate.':''}
+                            {this.stalemate('w', this.state.squares) == true ? 'The match is in stalemate. Game over.':''}
                         </p>
                         <p className="medium_font">
-                            {this.stalemate('b', this.state.squares) == true ? 'The match is in stalemate':''}
+                            {this.stalemate('b', this.state.squares) == true ? 'The match is in stalemate. Game over.':''}
                         </p>
                     </div>
+                    <div className="button_wrapper">
+                        <button className="reset_button" onClick={() => this.reset()}>
+                            <p className="medium_font">
+                                <span>Restart Game</span>
+                            </p>
+                        </button>
+                    </div>
                 </div>
+
             </div>
 
             <div className="right_screen">
+                <div className="row_label">
+                    {row_nums}
+                </div>
                 <div className="table">
                     {board}
+                </div>
+                <div className="col_label">
+                    {col_nums}
                 </div>
             </div>
 
@@ -599,21 +611,6 @@ class Board extends React.Component {
         );
     }
 }
-
-
-/*
-<h1>
-    Turn: {this.state.turn == 'w' ? 'white':'black'}
-</h1>
-
-<div>
-    <button onClick={() => this.reset()}>
-        <h3>
-        Press me to reset the game!
-        </h3>
-    </button>
-</div>
-*/
 
 class Game extends React.Component {
     render() {
@@ -683,6 +680,15 @@ function initializeBoard() {
 function isEven(value) {
     return value %2;
 }
+
+function Label(props) {
+    return (
+        <button className = {"label"}>
+            {props.value}
+        </button>
+    );
+}
+
 
 class King {
     constructor(player) {
