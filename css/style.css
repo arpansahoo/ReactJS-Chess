@@ -1,12 +1,82 @@
 body, html {
 	background-color: #242424;
 	color: white;
+	font-family: "Gill Sans", sans-serif;
+	padding: 0;
 }
 
-.logo {
-	height: 50vmin;
-	width: auto;
-	position: fixed;
+.content {
+	padding-left: 20px;
+	padding-bottom: 20px;
+	padding-top: 5px;
+}
+
+.alt {
+	padding-left: 20px;
+	padding-bottom: 0;
+	padding-top: 5px;
+}
+
+.alt2 {
+	padding-left: 20px;
+	padding-bottom: 20px;
+	padding-top: 0px;
+}
+
+.header_font {
+	font-size: 3em;
+	line-height: 1;
+}
+
+.h2_font {
+	font-size: 2em;
+	line-height: 1;
+}
+
+.medium_font {
+	font-size: 1.3em;
+	line-height: 1;
+}
+
+.side_box {
+	width: 65%;
+	box-sizing: border-box;
+	background-color: #77e1d7;
+	color: black;
+	border-radius: 3px;
+	box-shadow: 1px 1px 3px #232621;
+	position: relative;
+	top: calc(50% - 41vmin);
+	left: 15%;
+	margin: 0 0 40 0;
+}
+
+.wrapper {
+	display: flex;
+	padding: 0 20 0 20;
+}
+
+.player_box {
+	width: 45%;
+	background-color: #242424;
+	padding: 0 15px 10px;
+	border-top-right-radius: 3px;
+	color: white;
+	text-align: center;
+}
+
+.alt_color {
+	background-color: #deeaee;
+	color: black;
+}
+
+.table {
+	position: absolute;
+	top: calc(50% - 41vmin);
+	left: calc(50% - 45vmin);
+	width: 80vmin;
+	height: 80vmin;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 .right_screen {
@@ -22,62 +92,6 @@ body, html {
   	height: 100%;
   	width: 50%;
 	overflow: auto;
-}
-
-.title_box {
-	width: 65%;
-	box-sizing: border-box;
-	padding: 10px 20px;
-	background-color: #77e1d7;
-	color: black;
-	border-radius: 3px;
-	box-shadow: 1px 1px 3px #232621;
-	position: relative;
-	top: calc(50% - 41vmin);
-	left: 15%;
-	margin: 0 0 40 0;
-}
-
-.table {
-	position: absolute;
-	top: calc(50% - 41vmin);
-	left: calc(50% - 45vmin);
-	width: 80vmin;
-	height: 80vmin;
-	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-.label {
-	font-size: 20px;
-	color: #deeaee;
-}
-
-.column {
-	position: absolute;
-	margin: auto;
-	width: 640px;
-	height: 0px;
-}
-
-.column_element {
-	border: 20px;
-	float: left;
-	height: 40px;
-	width: 80px;
-	background-color: transparent;
-}
-
-.row {
-	width: 40px;
-	height: 0px;
-}
-
-.row_element {
-	border: 20px;
-	float: left;
-	height: 80px;
-	width: 40px;
-	background-color:transparent;
 }
 
 .piece {
@@ -144,7 +158,7 @@ body, html {
 	background-color:#ffac2c;
 }
 
-@media screen and (max-width: 950px) {
+@media screen and (max-width: 1000px) {
 	.right_screen {
 	  	width: 100%;
 		height: 100vmin;
@@ -155,7 +169,7 @@ body, html {
 		height: auto;
 	}
 
-	.title_box {
+	.side_box {
 		top: calc(50% - 41vmin);
 		left: 16%;
 		margin: 40 0 20 0;

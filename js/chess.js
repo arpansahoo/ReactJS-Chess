@@ -545,15 +545,46 @@ class Board extends React.Component {
             <div>
 
             <div className="left_screen">
-                <div className="title_box">
-                    <h1>Pokémon Chess</h1>
-                    <h1>Pokémon Chess</h1>
+                <div className="side_box">
+                    <div className="content">
+                        <p className="header_font">Pokémon Chess</p>
+                        <p className="medium_font">A React.js app made by Arpan Sahoo.</p>
+                    </div>
                 </div>
-                <div className="title_box">
-                    <h1>Pokémon Chess</h1>
-                </div>
-                <div className="title_box">
-                    <h1>Pokémon Chess</h1>
+                <div className="side_box">
+                    <div className="content alt">
+                        <p className="h2_font">Match Information</p>
+                    </div>
+                    <div className="wrapper">
+                        <div className="player_box">
+                            <p className="medium_font">White Player</p>
+                        </div>
+                        <div className="player_box alt_color">
+                            <p className="medium_font">Black Player</p>
+                        </div>
+                    </div>
+                    <div className="content alt2">
+                        <p className="medium_font">
+                            {this.in_check('w', this.state.squares) && !this.checkmate('w', this.state.squares)
+                            && !this.stalemate('w', this.state.squares) == true ? 'White player is in check.': ''}
+                        </p>
+                        <p className="medium_font">
+                            {this.in_check('b', this.state.squares) && !this.checkmate('b', this.state.squares)
+                            && !this.stalemate('b', this.state.squares) == true ? 'Black player is in check.':''}
+                        </p>
+                        <p className="medium_font">
+                            {this.checkmate('w', this.state.squares) == true ? 'White player has been checkmated.':''}
+                        </p>
+                        <p className="medium_font">
+                            {this.checkmate('b', this.state.squares) == true ? 'Blacke player has been checkmated.':''}
+                        </p>
+                        <p className="medium_font">
+                            {this.stalemate('w', this.state.squares) == true ? 'The match is in stalemate.':''}
+                        </p>
+                        <p className="medium_font">
+                            {this.stalemate('b', this.state.squares) == true ? 'The match is in stalemate':''}
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -570,64 +601,17 @@ class Board extends React.Component {
 }
 
 
-
 /*
-<img src="./images/logo.png" className="logo"></img>
-
 <h1>
     Turn: {this.state.turn == 'w' ? 'white':'black'}
 </h1>
-<h1>
-    Turn_Num: {this.state.turn_num}
-</h1>
-<h2>
-    {this.in_check('w', this.state.squares) == true ? 'White - Check': ''}
-</h2>
-<h2>
-    {this.in_check('b', this.state.squares) == true ? 'Black - Check':''}
-</h2>
-<h2>
-    {this.checkmate('w', this.state.squares) == true ? 'White - Checkmate!':''}
-</h2>
-<h2>
-    {this.checkmate('b', this.state.squares) == true ? 'Black - Checkmate!':''}
-</h2>
-<h2>
-    {this.stalemate('w', this.state.squares) == true ? 'White - Stalemate!':''}
-</h2>
-<h2>
-    {this.stalemate('b', this.state.squares) == true ? 'Black - Stalemate!':''}
-</h2>
+
 <div>
     <button onClick={() => this.reset()}>
         <h3>
         Press me to reset the game!
         </h3>
     </button>
-</div>
-*/
-
-
-/*
-<div className="column">
-    <Column_element letter = 'A'/>
-    <Column_element letter = 'B'/>
-    <Column_element letter = 'C'/>
-    <Column_element letter = 'D'/>
-    <Column_element letter = 'E'/>
-    <Column_element letter = 'F'/>
-    <Column_element letter = 'G'/>
-    <Column_element letter = 'H'/>
-</div>
-<div className="row">
-    <Row_element letter = '8'/>
-    <Row_element letter = '7'/>
-    <Row_element letter = '6'/>
-    <Row_element letter = '5'/>
-    <Row_element letter = '4'/>
-    <Row_element letter = '3'/>
-    <Row_element letter = '2'/>
-    <Row_element letter = '1'/>
 </div>
 */
 
@@ -935,21 +919,6 @@ class filler_piece {
     can_move(start, end) {
         return false;
     }
-}
-
-function Column_element(props) {
-    return (
-        <button className = {"column_element label"}>
-            {props.letter}
-        </button>
-    );
-}
-function Row_element(props) {
-    return (
-        <button className = {"row_element label"}>
-            {props.letter}
-        </button>
-    );
 }
 
 ReactDOM.render(
