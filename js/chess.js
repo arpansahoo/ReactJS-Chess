@@ -546,7 +546,14 @@ class Board extends React.Component {
 
             <div className="left_screen">
                 <div className="title_box">
-                    <h1>Pokémon Chess!</h1>
+                    <h1>Pokémon Chess</h1>
+                    <h1>Pokémon Chess</h1>
+                </div>
+                <div className="title_box">
+                    <h1>Pokémon Chess</h1>
+                </div>
+                <div className="title_box">
+                    <h1>Pokémon Chess</h1>
                 </div>
             </div>
 

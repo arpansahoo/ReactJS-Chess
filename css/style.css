@@ -13,7 +13,6 @@ body, html {
 	position: relative;
 	display: inline-block;
   	height: 100%;
-  	min-height: 100%;
   	width: 50%;
 }
 
@@ -21,26 +20,28 @@ body, html {
 	position: relative;
 	float: left;
   	height: 100%;
-  	min-height: 100%;
   	width: 50%;
+	overflow: auto;
 }
 
 .title_box {
-	width: 60%;
+	width: 65%;
 	box-sizing: border-box;
 	padding: 10px 20px;
-	background-color: #e2d4b7;
-	color: #222222;
+	background-color: #77e1d7;
+	color: black;
 	border-radius: 3px;
 	box-shadow: 1px 1px 3px #232621;
-	margin: 8vmin 60px 0;
-	text-align: center;
+	position: relative;
+	top: calc(50% - 41vmin);
+	left: 15%;
+	margin: 0 0 40 0;
 }
 
 .table {
 	position: absolute;
 	top: calc(50% - 41vmin);
-	left: calc(50% - 44vmin);
+	left: calc(50% - 45vmin);
 	width: 80vmin;
 	height: 80vmin;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
@@ -145,31 +146,23 @@ body, html {
 
 @media screen and (max-width: 950px) {
 	.right_screen {
-		position: relative;
 	  	width: 100%;
-		height: 50%;
+		height: 100vmin;
 	}
 
 	.left_screen {
-	  	width: 100%;
-		height: 40%;
-		min-height: 0%;
+	  	width: 100% !important;
+		height: auto;
 	}
 
 	.title_box {
-		position: absolute;
-		top: 15%;
-		left: 17%;
-		width: 60%;
-		margin: 0 0 0;
+		top: calc(50% - 41vmin);
+		left: 16%;
+		margin: 40 0 20 0;
 	}
 
 	.table {
-		position: absolute;
 		top: calc(50% - 41vmin);
 		left: calc(50% - 42vmin);
-		width: 80vmin;
-		height: 80vmin;
-		box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 	}
 }
