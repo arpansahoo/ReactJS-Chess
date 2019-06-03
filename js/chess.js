@@ -169,6 +169,9 @@ class Board extends React.Component {
     }
 
     can_move_there(start, end, squares) {
+        if (start == end) {
+            return false;
+        }
         var player = squares[start].player;
 
         if (player == squares[end].player || squares[start].can_move(start, end) == false) {
@@ -390,18 +393,85 @@ class Board extends React.Component {
 
     }
 
+    shuffle(param) {
+        const array = param.slice();
+        for (let i = array.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
+            [array[i], array[j]] = [array[j], array[i]]; // swap elements
+        }
+        return array;
+    }
+
     // Render the board.
     render() {
         // Implementing a bot....
         if (this.state.turn == 'b') {
             const copy_squares = this.state.squares.slice();
-            copy_squares[this.state.turn_num] = new King('b');
-            this.setState( {
-                turn: 'w',
-                turn_num: (this.state.turn_num + 1),
-                source: -1, // set source back to non-clicked
-                squares: copy_squares,
-            });
+
+            let array = [];
+            for (let i = 0; i < 64; i++) {
+                array.push(i);
+            }
+            array = this.shuffle(array);
+
+            let rand_start = 0;
+
+            for (let i = 0; i < 64; i++) {
+                if (copy_squares[array[i]].ascii != null && copy_squares[array[i]].player == 'b') {
+                    rand_start = array[i];
+                    break;
+                }
+            }
+
+            let rand_end = 65;
+
+            let new_array = [];
+            for (let i = 0; i < 64; i++) {
+                new_array.push(i);
+            }
+            new_array = this.shuffle(new_array);
+
+            let n = 0;
+            let occur = false;
+
+            while (n < 65 && occur == false) {
+                for (let i = 0; i < 64; i++) {
+                    if (this.can_move_there(rand_start, new_array[i], copy_squares) == true) {
+                        rand_end = new_array[i];
+                        occur = true;
+                        break;
+                    }
+                }
+                if (rand_end == 65) {
+                    for (let i = 0; i < 64; i++) {
+                        if (copy_squares[array[i]].ascii != null && copy_squares[array[i]].player == 'b' && array[i] != rand_start) {
+                            rand_start = array[i];
+                            break;
+                        }
+                    }
+                }
+                n += 1;
+            }
+
+            if (rand_end != 65) {
+                // make the move
+                copy_squares[rand_end] = copy_squares[rand_start];
+                copy_squares[rand_start] = new filler_piece(this.state.turn);
+
+                // pawn promotion
+                if (copy_squares[rand_end].ascii == 'P' && (rand_end >= 56 && rand_end <= 63)) {
+                    copy_squares[rand_end] = new Queen('b');
+                }
+
+                this.setState( {
+                    turn: 'w',
+                    turn_num: (this.state.turn_num + 1),
+                    source: -1, // set source back to non-clicked
+                    squares: copy_squares,
+                });
+            } else {
+                alert("rand_end was 65");
+            }
         }
         const new_copy_squares = this.state.squares.slice();
         let position_of_king = null;
@@ -561,18 +631,21 @@ class Board extends React.Component {
 
             <div>
 
-
             <div className="left_screen">
+
                 <div className="side_box">
                     <div className="content">
                         <p className="header_font">Pokémon Chess</p>
                         <p className="medium_font">A React.js app made by Arpan Sahoo.</p>
                     </div>
                 </div>
+
                 <div className="side_box">
+
                     <div className="content alt">
                         <p className="h2_font">Match Information</p>
                     </div>
+
                     <div className="wrapper">
                         <div className="player_box">
                             <p className="medium_font">White Player</p>
@@ -591,6 +664,7 @@ class Board extends React.Component {
                         </div> : <div className="highlight_box transparent">
                         </div>}
                     </div>
+
                     <div className="content alt2">
                         <p className="medium_font">
                             {this.in_check('w', this.state.squares) && !this.checkmate('w', this.state.squares)
@@ -613,6 +687,7 @@ class Board extends React.Component {
                             {this.stalemate('b', this.state.squares) == true ? 'The match is in stalemate. Game over.':''}
                         </p>
                     </div>
+
                     <div className="button_wrapper">
                         <button className="reset_button" onClick={() => this.reset()}>
                             <p className="medium_font">
@@ -620,6 +695,7 @@ class Board extends React.Component {
                             </p>
                         </button>
                     </div>
+
                 </div>
 
             </div>
