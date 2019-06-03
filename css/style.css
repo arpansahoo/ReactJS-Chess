@@ -42,7 +42,7 @@ body, html {
 	border-radius: 3px;
 	box-shadow: 1px 1px 3px #232621;
 	position: relative;
-	top: calc(50% - 40vmin);
+	top: calc(50% - 41vmin);
 	left: 15%;
 	margin: 0 0 40 0;
 }

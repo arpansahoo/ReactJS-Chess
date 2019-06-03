@@ -1,3 +1,4 @@
+// return a square with the chess piece
 function Square(props) {
     if (props.value != null) {
         return (
@@ -169,7 +170,7 @@ class Board extends React.Component {
     }
 
     can_move_there(start, end, squares) {
-        if (start == end) {
+        if (start == end) { // cannot move to the position you're already sitting in
             return false;
         }
         var player = squares[start].player;
@@ -267,7 +268,7 @@ class Board extends React.Component {
 
         // second click (to move piece from the source to destination)
         if (this.state.source > -1) {
-            var cannibalism = (copy_squares[i].player == copy_squares[this.state.source].player);
+            var cannibalism = (copy_squares[i].player == 'w');
 
             /* if user is trying to select one of her other pieces,
              * change highlight to the new selection, but do not move any pieces
@@ -303,38 +304,27 @@ class Board extends React.Component {
                                 value = {copy_squares[i]}/>
                             );
                         }
-                        const copy_black_collection = this.state.pieces_collected_by_black.slice();
-                        if (copy_squares[this.state.source].player == 'b' && copy_squares[i].ascii != null) {
-                            copy_black_collection.push(<Collected
-                                value = {copy_squares[i]}/>
-                            );
+
+                        // clear any highlights from last move after new move is made
+                        for (let j = 0; j < 64; j++) {
+                            if (copy_squares[j].highlight == 1) {
+                                copy_squares[j].highlight = 0;
+                            }
+                            if (copy_squares[j].possible == 1) {
+                                copy_squares[j].possible = 0;
+                            }
                         }
 
                         // make the move
                         copy_squares[i] = copy_squares[this.state.source];
                         copy_squares[i].highlight = 1;
-                        copy_squares[this.state.source] = new filler_piece(this.state.turn);
+                        copy_squares[this.state.source] = new filler_piece('w');
                         copy_squares[this.state.source].highlight = 1;
 
                         // pawn promotion
                         if (copy_squares[i].ascii == 'p' && (i >= 0 && i <= 7)) {
                             copy_squares[i] = new Queen('w');
                             copy_squares[i].highlight = 1;
-                        } else if (copy_squares[i].ascii == 'P' && (i >= 56 && i <= 63)) {
-                            copy_squares[i] = new Queen('b');
-                            copy_squares[i].highlight = 1;
-                        }
-
-                        // clear any highlights from last turn after move is made
-                        for (let j = 0; j < 64; j++) {
-                            if (copy_squares[j].highlight == 1) {
-                                if (copy_squares[j].player != this.state.turn) {
-                                    copy_squares[j].highlight = 0;
-                                }
-                            }
-                            if (copy_squares[j].possible == 1) {
-                                copy_squares[j].possible = 0;
-                            }
                         }
                         copy_squares[this.state.source].player = null;
 
@@ -346,7 +336,6 @@ class Board extends React.Component {
                                 source: -1, // set source back to non-clicked
                                 squares: copy_squares,
                                 pieces_collected_by_white: copy_white_collection,
-                                pieces_collected_by_black: copy_black_collection,
                             });
                         }
 
@@ -393,6 +382,7 @@ class Board extends React.Component {
 
     }
 
+    // Fisher-Yates shuffle
     shuffle(param) {
         const array = param.slice();
         for (let i = array.length - 1; i > 0; i--) {
@@ -402,9 +392,43 @@ class Board extends React.Component {
         return array;
     }
 
+    // return a random end position that is valid
+    // else return 100, indicating that there is no valid end position
+    rand_end_generator(start, squares) {
+        let new_array = [];
+        for (let i = 0; i < 64; i++) {
+            new_array.push(i);
+        }
+        new_array = this.shuffle(new_array);
+        for (let i = 0; i < 64; i++) {
+            let possible_end = new_array[i];
+            if (squares[start] != null && this.can_move_there(start, possible_end, squares) == true) {
+                return possible_end;
+            }
+        }
+        return 100;
+    }
+
+    // return a random start position that hosts a black piece
+    rand_start_generator(squares, array, used_nums) {
+        for (let i = 0; i < 64; i++) {
+            let possible_start = array[i];
+            for (let j = 0; j < used_nums.length; j++) {
+                if (used_nums[j] == possible_start) {
+                    ++i;
+                    possible_start = array[i];
+                }
+            }
+            if (squares[possible_start] != null && squares[possible_start].ascii != null && squares[possible_start].player == 'b') {
+                return possible_start;
+            }
+        }
+        return 100;
+    }
+
     // Render the board.
     render() {
-        // Implementing a bot....
+        // Chess bot for black player
         if (this.state.turn == 'b') {
             const copy_squares = this.state.squares.slice();
 
@@ -414,52 +438,52 @@ class Board extends React.Component {
             }
             array = this.shuffle(array);
 
-            let rand_start = 0;
-            for (let i = 0; i < 64; i++) {
-                if (copy_squares[array[i]].ascii != null && copy_squares[array[i]].player == 'b') {
-                    rand_start = array[i];
-                    break;
-                }
-            }
+            const used_nums = [];
 
-            let new_array = [];
-            for (let i = 0; i < 64; i++) {
-                new_array.push(i);
-            }
-            new_array = this.shuffle(new_array);
-
+            let rand_start = 100;
+            rand_start = this.rand_start_generator(copy_squares, array, used_nums);
+            used_nums.push(rand_start);
             let rand_end = 100;
             let n = 0;
-            let occur = false;
 
-            while (n < 65 && occur == false) {
-                for (let i = 0; i < 64; i++) {
-                    if (this.can_move_there(rand_start, new_array[i], copy_squares) == true) {
-                        rand_end = new_array[i];
-                        occur = true;
-                        break;
-                    }
-                }
+            while (n < 65) {
+                rand_end = this.rand_end_generator(rand_start, copy_squares);
                 if (rand_end == 100) {
-                    for (let i = 0; i < 64; i++) {
-                        if (copy_squares[array[i]].ascii != null && copy_squares[array[i]].player == 'b' && array[i] != rand_start) {
-                            rand_start = array[i];
-                            break;
-                        }
-                    }
+                    rand_start = this.rand_start_generator(copy_squares, array, used_nums);
+                    used_nums.push(rand_start);
+                } else {
+                    n = 67;
                 }
-                console.log("running");
                 n += 1;
             }
 
             if (rand_end != 100) {
+                // when a piece is captured, record it
+                const copy_black_collection = this.state.pieces_collected_by_black.slice();
+                if (copy_squares[rand_start] != null && copy_squares[rand_start].player == 'b'
+                && copy_squares[rand_end] != null && copy_squares[rand_end].ascii != null) {
+                    copy_black_collection.push(<Collected
+                        value = {copy_squares[rand_end]}/>
+                    );
+                }
+
+                // clear any highlights from last move after new move is made
+                for (let j = 0; j < 64; j++) {
+                    if (copy_squares[j].highlight == 1) {
+                        copy_squares[j].highlight = 0;
+                    }
+                }
+
                 // make the move
                 copy_squares[rand_end] = copy_squares[rand_start];
-                copy_squares[rand_start] = new filler_piece(this.state.turn);
+                copy_squares[rand_end].highlight = 1;
+                copy_squares[rand_start] = new filler_piece(null);
+                copy_squares[rand_start].highlight = 1;
 
                 // pawn promotion
                 if (copy_squares[rand_end].ascii == 'P' && (rand_end >= 56 && rand_end <= 63)) {
                     copy_squares[rand_end] = new Queen('b');
+                    copy_squares[rand_end].highlight = 1;
                 }
 
                 this.setState( {
@@ -467,13 +491,14 @@ class Board extends React.Component {
                     turn_num: (this.state.turn_num + 1),
                     source: -1, // set source back to non-clicked
                     squares: copy_squares,
+                    pieces_collected_by_black: copy_black_collection,
                 });
             } else {
-                console.log("rand_end was 100. stuck on black move");
+                alert("rand_end is 100")
             }
         }
+
         const new_copy_squares = this.state.squares.slice();
-        let position_of_king = null;
         const board = [];
         for (let i = 0; i < 8; i++) {
             const squareRows = [];
@@ -647,11 +672,11 @@ class Board extends React.Component {
 
                     <div className="wrapper">
                         <div className="player_box">
-                            <p className="medium_font">White Player</p>
+                            <p className="medium_font">White (You)</p>
                             {this.state.pieces_collected_by_white}
                         </div>
                         <div className="player_box alt_color">
-                            <p className="medium_font">Black Player</p>
+                            <p className="medium_font">Black (Bot)</p>
                             {this.state.pieces_collected_by_black}
                         </div>
                     </div>
@@ -667,17 +692,17 @@ class Board extends React.Component {
                     <div className="content alt2">
                         <p className="medium_font">
                             {this.in_check('w', this.state.squares) && !this.checkmate('w', this.state.squares)
-                            && !this.stalemate('w', this.state.squares) == true ? 'White player is in check.': ''}
+                            && !this.stalemate('w', this.state.squares) == true ? 'You are in check!': ''}
                         </p>
                         <p className="medium_font">
                             {this.in_check('b', this.state.squares) && !this.checkmate('b', this.state.squares)
                             && !this.stalemate('b', this.state.squares) == true ? 'Black player is in check.':''}
                         </p>
                         <p className="medium_font">
-                            {this.checkmate('w', this.state.squares) == true ? 'White player has been checkmated. Game over.':''}
+                            {this.checkmate('w', this.state.squares) == true ? 'You lost by checkmate.':''}
                         </p>
                         <p className="medium_font">
-                            {this.checkmate('b', this.state.squares) == true ? 'Black player has been checkmated. Game over.':''}
+                            {this.checkmate('b', this.state.squares) == true ? 'You won by checkmate!':''}
                         </p>
                         <p className="medium_font">
                             {this.stalemate('w', this.state.squares) == true ? 'The match is in stalemate. Game over.':''}
