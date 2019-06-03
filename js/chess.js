@@ -415,7 +415,6 @@ class Board extends React.Component {
             array = this.shuffle(array);
 
             let rand_start = 0;
-
             for (let i = 0; i < 64; i++) {
                 if (copy_squares[array[i]].ascii != null && copy_squares[array[i]].player == 'b') {
                     rand_start = array[i];
@@ -423,14 +422,13 @@ class Board extends React.Component {
                 }
             }
 
-            let rand_end = 65;
-
             let new_array = [];
             for (let i = 0; i < 64; i++) {
                 new_array.push(i);
             }
             new_array = this.shuffle(new_array);
 
+            let rand_end = 100;
             let n = 0;
             let occur = false;
 
@@ -442,7 +440,7 @@ class Board extends React.Component {
                         break;
                     }
                 }
-                if (rand_end == 65) {
+                if (rand_end == 100) {
                     for (let i = 0; i < 64; i++) {
                         if (copy_squares[array[i]].ascii != null && copy_squares[array[i]].player == 'b' && array[i] != rand_start) {
                             rand_start = array[i];
@@ -450,10 +448,11 @@ class Board extends React.Component {
                         }
                     }
                 }
+                console.log("running");
                 n += 1;
             }
 
-            if (rand_end != 65) {
+            if (rand_end != 100) {
                 // make the move
                 copy_squares[rand_end] = copy_squares[rand_start];
                 copy_squares[rand_start] = new filler_piece(this.state.turn);
@@ -470,7 +469,7 @@ class Board extends React.Component {
                     squares: copy_squares,
                 });
             } else {
-                alert("rand_end was 65");
+                console.log("rand_end was 100. stuck on black move");
             }
         }
         const new_copy_squares = this.state.squares.slice();
