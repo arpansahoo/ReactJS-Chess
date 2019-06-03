@@ -8,11 +8,8 @@ function Square(props) {
             </button>
         );
     } else {
-        return (
-            <button className = {"square " + props.color + props.corner}
-            onClick = {props.onClick}>
-            </button>
-        );
+        return ( <button className = {"square " + props.color + props.corner}
+            onClick = {props.onClick}> </button> );
     }
 }
 
@@ -76,7 +73,6 @@ class Board extends React.Component {
                 }
             }
         }
-
         return false;
     }
 
@@ -87,7 +83,6 @@ class Board extends React.Component {
         var end_col = end % 8 + 1;
         let row_diff = end_row - start_row;
         let col_diff = end_col - start_col;
-
         const copy_squares = squares.slice();
 
         // only allow 2 space move if the pawn is in the start position
@@ -99,14 +94,12 @@ class Board extends React.Component {
                 return false;
             }
         }
-
         // cannot move up/down if there is a piece
         if (copy_squares[end].ascii != null) {
             if (col_diff == 0) {
                 return false;
             }
         }
-
         // cannot move diagonally if there is no piece to capture
         if (row_diff == -1 || row_diff == 1) {
             if (col_diff == -1 || col_diff == 1) {
@@ -115,13 +108,11 @@ class Board extends React.Component {
                 }
             }
         }
-
         return true;
     }
 
     invalid_move(start, end, squares) {
         const copy_squares = squares.slice();
-
         // if the piece is a bishop, queen, rook, or pawn,
         // it cannot skip over pieces
         var bqrp = copy_squares[start].ascii == 'r' ||
@@ -136,7 +127,6 @@ class Board extends React.Component {
         if (invalid) {
             return invalid;
         }
-
         // checking for certain rules regarding the pawn
         var pawn = copy_squares[start].ascii == 'p' ||
             copy_squares[start].ascii == 'P';
@@ -174,11 +164,9 @@ class Board extends React.Component {
             return false;
         }
         var player = squares[start].player;
-
         if (player == squares[end].player || squares[start].can_move(start, end) == false) {
             return false;
         }
-
         if (this.invalid_move(start, end, squares) == true) {
             return false;
         }
@@ -253,6 +241,7 @@ class Board extends React.Component {
             if (copy_squares[i].player != null) {
                 copy_squares[i].highlight = 1; // highlight selected piece
 
+                // highlight legal moves
                 for (let j = 0; j < 64; j++) {
                     if (this.can_move_there(i, j, copy_squares)) {
                         copy_squares[j].possible = 1;
@@ -268,7 +257,7 @@ class Board extends React.Component {
 
         // second click (to move piece from the source to destination)
         if (this.state.source > -1) {
-            var cannibalism = (copy_squares[i].player == 'w');
+            var cannibalism = (copy_squares[i].player == this.state.turn);
 
             /* if user is trying to select one of her other pieces,
              * change highlight to the new selection, but do not move any pieces
@@ -299,7 +288,7 @@ class Board extends React.Component {
 
                         // when a piece is captured, record it
                         const copy_white_collection = this.state.pieces_collected_by_white.slice();
-                        if (copy_squares[this.state.source].player == 'w' && copy_squares[i].ascii != null) {
+                        if (copy_squares[this.state.source].player == this.state.turn && copy_squares[i].ascii != null) {
                             copy_white_collection.push(<Collected
                                 value = {copy_squares[i]}/>
                             );
@@ -318,7 +307,7 @@ class Board extends React.Component {
                         // make the move
                         copy_squares[i] = copy_squares[this.state.source];
                         copy_squares[i].highlight = 1;
-                        copy_squares[this.state.source] = new filler_piece('w');
+                        copy_squares[this.state.source] = new filler_piece(this.state.turn);
                         copy_squares[this.state.source].highlight = 1;
 
                         // pawn promotion
@@ -432,29 +421,30 @@ class Board extends React.Component {
         if (this.state.turn == 'b') {
             const copy_squares = this.state.squares.slice();
 
-            let array = [];
+            let RA_of_starts = [];
             for (let i = 0; i < 64; i++) {
-                array.push(i);
+                RA_of_starts.push(i);
             }
-            array = this.shuffle(array);
+            RA_of_starts = this.shuffle(RA_of_starts);
 
             const used_nums = [];
-
-            let rand_start = 100;
-            rand_start = this.rand_start_generator(copy_squares, array, used_nums);
+            let rand_start = this.rand_start_generator(copy_squares, RA_of_starts, used_nums);
             used_nums.push(rand_start);
-            let rand_end = 100;
-            let n = 0;
 
-            while (n < 65) {
+            let rand_end = 100;
+            let iterations = 0;
+
+            // pick a rand_start that hosts a black piece and is able to legally
+            // move to a chosen rand_end
+            while (iterations < 65) {
                 rand_end = this.rand_end_generator(rand_start, copy_squares);
                 if (rand_end == 100) {
-                    rand_start = this.rand_start_generator(copy_squares, array, used_nums);
+                    rand_start = this.rand_start_generator(copy_squares, RA_of_starts, used_nums);
                     used_nums.push(rand_start);
                 } else {
-                    n = 67;
+                    iterations = 67;
                 }
-                n += 1;
+                iterations += 1;
             }
 
             if (rand_end != 100) {
@@ -494,11 +484,10 @@ class Board extends React.Component {
                     pieces_collected_by_black: copy_black_collection,
                 });
             } else {
-                alert("rand_end is 100")
+                //alert("rand_end is 100")
             }
         }
 
-        const new_copy_squares = this.state.squares.slice();
         const board = [];
         for (let i = 0; i < 8; i++) {
             const squareRows = [];
@@ -612,55 +601,35 @@ class Board extends React.Component {
 
         const row_nums = [];
         for (let i = 8; i > 0; i--) {
-            row_nums.push(<Label
-                value = {i} />
-            );
+            row_nums.push(<Label value = {i} />);
         }
 
         const col_nums = [];
         for (let i = 1; i < 9; i++) {
             let letter;
             switch (i) {
-                case 1:
-                    letter = 'A';
-                    break;
-                case 2:
-                    letter = 'B';
-                    break;
-                case 3:
-                    letter = 'C';
-                    break;
-                case 4:
-                    letter = 'D';
-                    break;
-                case 5:
-                    letter = 'E';
-                    break;
-                case 6:
-                    letter = 'F';
-                    break;
-                case 7:
-                    letter = 'G';
-                    break;
-                case 8:
-                    letter = 'H';
-                    break;
+                case 1: letter = 'A'; break;
+                case 2: letter = 'B'; break;
+                case 3: letter = 'C'; break;
+                case 4: letter = 'D'; break;
+                case 5: letter = 'E'; break;
+                case 6: letter = 'F'; break;
+                case 7: letter = 'G'; break;
+                case 8: letter = 'H'; break;
             }
-            col_nums.push(<Label
-                value = {letter} />
-            );
+            col_nums.push(<Label value = {letter} />);
         }
 
         return (
 
-            <div>
+        <div>
 
             <div className="left_screen">
 
                 <div className="side_box">
                     <div className="content">
                         <p className="header_font">Pokémon Chess</p>
-                        <p className="medium_font">A React.js app made by Arpan Sahoo.</p>
+                        <p className="medium_font">Gotta Capture 'Em All! A heart so true...</p>
                     </div>
                 </div>
 
@@ -736,7 +705,7 @@ class Board extends React.Component {
                 </div>
             </div>
 
-            </div>
+        </div>
 
         );
     }
@@ -744,11 +713,7 @@ class Board extends React.Component {
 
 class Game extends React.Component {
     render() {
-        return (
-            <div className="game">
-                <Board />
-            </div>
-        );
+        return ( <div className="game"> <Board /> </div> );
     }
 }
 
@@ -760,40 +725,31 @@ function initializeBoard() {
     for (let i = 8; i < 16; i++) {
         squares[i] = new Pawn('b');
     }
-
     // white pawns
     for (let i = 8*6; i < 8*6+8; i++) {
         squares[i] = new Pawn('w');
     }
-
     // black knights
     squares[1] = new Knight('b');
     squares[6] = new Knight('b');
-
     // white knights
     squares[56+1] = new Knight('w');
     squares[56+6] = new Knight('w');
-
     // black bishops
     squares[2] = new Bishop('b');
     squares[5] = new Bishop('b');
-
     // white bishops
     squares[56+2] = new Bishop('w');
     squares[56+5] = new Bishop('w');
-
     // black rooks
     squares[0] = new Rook('b');
     squares[7] = new Rook('b');
-
     // white rooks
     squares[56+0] = new Rook('w');
     squares[56+7] = new Rook('w');
-
     // black queen & king
     squares[3] = new Queen('b');
     squares[4] = new King('b');
-
     // white queen & king
     squares[56+3] = new Queen('w');
     squares[56+4] = new King('w');
@@ -812,19 +768,11 @@ function isEven(value) {
 }
 
 function Label(props) {
-    return (
-        <button className = {"label"}>
-            {props.value}
-        </button>
-    );
+    return ( <button className = {"label"}> {props.value} </button> );
 }
 
 function Collected(props) {
-    return (
-        <button className = {"collected"}>
-            {props.value.icon}
-        </button>
-    );
+    return ( <button className = {"collected"}> {props.value.icon} </button> );
 }
 
 class King {

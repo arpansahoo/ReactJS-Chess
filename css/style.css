@@ -38,7 +38,7 @@ body, html {
 	width: 65%;
 	box-sizing: border-box;
 	background-color: #77e1d7;
-	color: black;
+	color: #242424;
 	border-radius: 3px;
 	box-shadow: 1px 1px 3px #232621;
 	position: relative;
@@ -58,7 +58,7 @@ body, html {
 	padding: 0 15px 5px;
 	border-top-right-radius: 0px;
 	border-top-left-radius: 3px;
-	color: black;
+	color: #242424;
 	align-items: center;
 	align-content: center;
 	justify-content: center;
