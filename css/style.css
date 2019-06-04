@@ -4,6 +4,26 @@ body, html {
 	font-family: "Gill Sans", sans-serif;
 }
 
+/* unvisited link */
+a:link {
+ color: #242424;
+}
+
+/* visited link */
+a:visited {
+ color: #242424;
+}
+
+/* mouse over link */
+a:hover {
+ color: green;
+}
+
+/* selected link */
+a:active {
+ color: green;
+}
+
 .right_screen {
 	position: relative;
 	display: inline-block;
@@ -234,6 +254,10 @@ body, html {
 
 .highlighted_black_square {
 	background-color:#77e1d7;
+}
+
+.in_check_square {
+	background-color:#ff4233;
 }
 
 .checked_square {

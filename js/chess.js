@@ -234,12 +234,18 @@ class Board extends React.Component {
         if (this.state.source == -1) { // no source has been selected yet
 
             // can only pick a piece that is your own
-            if (copy_squares[i].player != this.state.turn) {
+            if (copy_squares[i].player != 'w') {
                 return -1;
             }
 
             //can only pick a piece that is not a blank square
             if (copy_squares[i].player != null) {
+                for (let j = 0; j < 64; j++) {
+                    if (copy_squares[j].ascii == 'k') {
+                        copy_squares[j].in_check = 0; // user has heeded warning
+                        break;
+                    }
+                }
                 copy_squares[i].highlight = 1; // highlight selected piece
 
                 // highlight legal moves
@@ -287,22 +293,23 @@ class Board extends React.Component {
                     && copy_squares[this.state.source].can_move(this.state.source, i) == true
                     && this.invalid_move(this.state.source, i, this.state.squares) == false) {
 
+                        // if user is in check, highlight king in red if user tries a move that doesn't get her
+                        // out of check
+                        if (this.in_check('w', copy_squares)) {
+                            for (let j = 0; j < 64; j++) {
+                                if (copy_squares[j].ascii == 'k') {
+                                    copy_squares[j].in_check = 1;
+                                    break;
+                                }
+                            }
+                        }
+
                         // when a piece is captured, record it
                         const copy_white_collection = this.state.pieces_collected_by_white.slice();
                         if (copy_squares[this.state.source].player == this.state.turn && copy_squares[i].ascii != null) {
                             copy_white_collection.push(<Collected
                                 value = {copy_squares[i]}/>
                             );
-                        }
-
-                        // clear any highlights from last move after new move is made
-                        for (let j = 0; j < 64; j++) {
-                            if (copy_squares[j].highlight == 1) {
-                                copy_squares[j].highlight = 0;
-                            }
-                            if (copy_squares[j].possible == 1) {
-                                copy_squares[j].possible = 0;
-                            }
                         }
 
                         // make the move
@@ -320,12 +327,31 @@ class Board extends React.Component {
 
                         // not allowed to put yourself in check
                         if (!this.in_check(copy_squares[i].player, copy_squares)) {
+                            for (let j = 0; j < 64; j++) { // user has heeded warning
+                                if (copy_squares[j].ascii == 'k') {
+                                    copy_squares[j].in_check = 0;
+                                    break;
+                                }
+                            }
                             this.setState( {
                                 turn: (this.state.turn == 'w' ? 'b':'w'),
                                 turn_num: (this.state.turn_num + 1),
                                 source: -1, // set source back to non-clicked
                                 squares: copy_squares,
                                 pieces_collected_by_white: copy_white_collection,
+                            });
+                        } else {
+                            // clear highlights
+                            const new_copy_squares = this.state.squares.slice();
+                            new_copy_squares[this.state.source].highlight = 0;
+                            for (let j = 0; j < 64; j++) {
+                                if (new_copy_squares[j].possible == 1) {
+                                    new_copy_squares[j].possible = 0;
+                                }
+                            }
+                            this.setState( {
+                                squares: new_copy_squares,
+                                source: -1, // set source back to non-clicked
                             });
                         }
 
@@ -364,6 +390,16 @@ class Board extends React.Component {
                             copy_squares[j].possible = 0;
                         }
                     }
+                    // if user is in check, highlight king in red if user tries a move that doesn't get her
+                    // out of check
+                    if (i != this.state.source && this.in_check('w', copy_squares) == true) {
+                        for (let j = 0; j < 64; j++) {
+                            if (copy_squares[j].ascii == 'k') {
+                                copy_squares[j].in_check = 1;
+                                break;
+                            }
+                        }
+                    }
                     this.setState( {
                         source: -1,
                         squares: copy_squares,
@@ -389,6 +425,11 @@ class Board extends React.Component {
         // Chess bot for black player
         if (this.state.turn == 'b') {
             const copy_squares = this.state.squares.slice();
+            for (let j = 0; j < 64; j++) {
+                if (copy_squares[j].possible == 1) {
+                    copy_squares[j].possible = 0;
+                }
+            }
 
             let rand_start = 100;
             let rand_end = 100;
@@ -491,6 +532,9 @@ class Board extends React.Component {
                     if (this.state.squares[(i*8) + j].possible == 1) {
                         square_color = "highlighted_white_square";
                     }
+                    if (this.state.squares[(i*8) + j].in_check == 1) {
+                        square_color = "in_check_square";
+                    }
                     if (this.state.squares[(i*8) + j].checked >= 1) {
                         square_color = (this.state.squares[(i*8) + j].checked == 1)
                         ? "checked_square":"stale_square";
@@ -506,6 +550,9 @@ class Board extends React.Component {
                         ? "black_square":"selected_black_square";
                     if (this.state.squares[(i*8) + j].possible == 1) {
                         square_color = "highlighted_black_square";
+                    }
+                    if (this.state.squares[(i*8) + j].in_check == 1) {
+                        square_color = "in_check_square";
                     }
                     if (this.state.squares[(i*8) + j].checked >= 1) {
                         square_color = (this.state.squares[(i*8) + j].checked == 1)
@@ -523,6 +570,9 @@ class Board extends React.Component {
                     if (this.state.squares[(i*8) + j].possible == 1) {
                         square_color = "highlighted_black_square";
                     }
+                    if (this.state.squares[(i*8) + j].in_check == 1) {
+                        square_color = "in_check_square";
+                    }
                     if (this.state.squares[(i*8) + j].checked >= 1) {
                         square_color = (this.state.squares[(i*8) + j].checked == 1)
                         ? "checked_square":"stale_square";
@@ -538,6 +588,9 @@ class Board extends React.Component {
                         ? "white_square":"selected_white_square";
                     if (this.state.squares[(i*8) + j].possible == 1) {
                         square_color = "highlighted_white_square";
+                    }
+                    if (this.state.squares[(i*8) + j].in_check == 1) {
+                        square_color = "in_check_square";
                     }
                     if (this.state.squares[(i*8) + j].checked >= 1) {
                         square_color = (this.state.squares[(i*8) + j].checked == 1)
@@ -557,6 +610,9 @@ class Board extends React.Component {
                             square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
                             ? "highlighted_white_square" : "highlighted_black_square";
                         }
+                        if (this.state.squares[(i*8) + j].in_check == 1) {
+                            square_color = "in_check_square";
+                        }
                         if (this.state.squares[(i*8) + j].checked >= 1) {
                             square_color = (this.state.squares[(i*8) + j].checked == 1)
                             ? "checked_square":"stale_square";
@@ -574,6 +630,9 @@ class Board extends React.Component {
                         if (this.state.squares[(i*8) + j].possible == 1) {
                             square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
                             ? "highlighted_white_square" : "highlighted_black_square";
+                        }
+                        if (this.state.squares[(i*8) + j].in_check == 1) {
+                            square_color = "in_check_square";
                         }
                         if (this.state.squares[(i*8) + j].checked >= 1) {
                             square_color = (this.state.squares[(i*8) + j].checked == 1)
@@ -622,7 +681,9 @@ class Board extends React.Component {
                 <div className="side_box">
                     <div className="content">
                         <p className="header_font">Pokémon Chess</p>
-                        <p className="medium_font">Gotta Capture 'Em All! A heart so true...</p>
+                        <p className="medium_font">Gotta Capture 'Em All!&nbsp;
+                            <a href="./how_to_play.html">How to Play</a>
+                        </p>
                     </div>
                 </div>
 
@@ -774,6 +835,7 @@ class King {
         this.highlight = 0;
         this.possible = 0;
         this.checked = 0;
+        this.in_check = 0;
         this.icon = (player == 'w' ?
             <img src="./images/white_king.png" className="piece"></img>
             : <img src="./images/black_king.png" className="piece"></img>);
