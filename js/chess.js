@@ -302,10 +302,10 @@ class Board extends React.Component {
 
                         // when a piece is captured, record it
                         const copy_white_collection = this.state.pieces_collected_by_white.slice();
-                        if (copy_squares[this.state.source].player == this.state.turn && copy_squares[i].ascii != null) {
-                            copy_white_collection.push(<Collected
-                                value = {copy_squares[i]}/>
-                            );
+                        if (copy_squares[this.state.source].player == this.state.turn
+                        && copy_squares[i].ascii != null) {
+
+                            copy_white_collection.push(<Collected value = {copy_squares[i]}/>);
                         }
 
                         // make the move
@@ -469,7 +469,7 @@ class Board extends React.Component {
         return total_eval;
     }
 
-    minimax(depth, is_black_player, squares, RA_of_starts, RA_of_ends) {
+    minimax(depth, is_black_player, alpha, beta, squares, RA_of_starts, RA_of_ends) {
         if (depth == 0) {
             return this.evaluate_black(squares);
         }
@@ -501,14 +501,23 @@ class Board extends React.Component {
                         }
 
                         // black player maximizes value, white player minimizes value
-                        let value = this.minimax(depth - 1, !is_black_player, test_squares, RA_of_starts, RA_of_ends);
+                        let value = this.minimax(depth - 1, !is_black_player, alpha, beta,
+                            test_squares, RA_of_starts, RA_of_ends);
                         if (is_black_player) {
                             if (value > best_value) {
                                 best_value = value;
                             }
+                            alpha = Math.max(alpha, value);
+                            if (beta <= alpha) {
+                                return best_value;
+                            }
                         } else {
                             if (value < best_value) {
                                 best_value = value;
+                            }
+                            beta = Math.min(beta, value);
+                            if (beta <= alpha) {
+                                return best_value;
                             }
                         }
 
@@ -562,7 +571,8 @@ class Board extends React.Component {
 
                         // board evaluation using mini_max algorithm
                         // by looking at future turns
-                        let board_eval = this.minimax(depth - 1, false, test_squares, RA_of_starts, RA_of_ends);
+                        let board_eval = this.minimax(depth - 1, false, -1000, 1000,
+                            test_squares, RA_of_starts, RA_of_ends);
                         if (board_eval >= best_value) {
                             best_value = board_eval;
                             rand_start = start;
