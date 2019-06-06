@@ -20,7 +20,6 @@ class Board extends React.Component {
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
-            turn_num: 1,
             pieces_collected_by_white: [],
             pieces_collected_by_black: [],
         };
@@ -34,7 +33,6 @@ class Board extends React.Component {
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
-            turn_num: 1,
             pieces_collected_by_white: [],
             pieces_collected_by_black: [],
         } );
@@ -234,7 +232,7 @@ class Board extends React.Component {
         if (this.state.source == -1) { // no source has been selected yet
 
             // can only pick a piece that is your own
-            if (copy_squares[i].player != 'w') {
+            if (copy_squares[i].player != this.state.turn) {
                 return -1;
             }
 
@@ -276,8 +274,6 @@ class Board extends React.Component {
                     if (copy_squares[j].possible == 1) {
                         copy_squares[j].possible = 0;
                     }
-                }
-                for (let j = 0; j < 64; j++) {
                     if (this.can_move_there(i, j, copy_squares)) {
                         copy_squares[j].possible = 1;
                     }
@@ -315,7 +311,7 @@ class Board extends React.Component {
                         // make the move
                         copy_squares[i] = copy_squares[this.state.source];
                         copy_squares[i].highlight = 1;
-                        copy_squares[this.state.source] = new filler_piece(this.state.turn);
+                        copy_squares[this.state.source] = new filler_piece(null);
                         copy_squares[this.state.source].highlight = 1;
 
                         // pawn promotion
@@ -333,13 +329,48 @@ class Board extends React.Component {
                                     break;
                                 }
                             }
+                            for (let j = 0; j < 64; j++) { // clear highlights
+                                if (copy_squares[j].possible == 1) {
+                                    copy_squares[j].possible = 0;
+                                }
+                            }
+
+                            check_mated = this.checkmate('b', copy_squares);
+                            stale_mated = this.stalemate('b', copy_squares);
+
+                            if (check_mated) {
+                                for (let j = 0; j < 64; j++) {
+                                    if (copy_squares[j].ascii == 'K') {
+                                        copy_squares[j].checked = 1;
+                                        break;
+                                    }
+                                }
+                                for (let j = 0; j < 64; j++) {
+                                    if (copy_squares[j].highlight == 1) {
+                                        copy_squares[j].highlight = 0;
+                                    }
+                                }
+                            } else if (stale_mated) {
+                                for (let j = 0; j < 64; j++) {
+                                    if (copy_squares[j].ascii == 'K') {
+                                        copy_squares[j].checked = 2;
+                                        break;
+                                    }
+                                }
+                                for (let j = 0; j < 64; j++) {
+                                    if (copy_squares[j].highlight == 1) {
+                                        copy_squares[j].highlight = 0;
+                                    }
+                                }
+                            }
+
                             this.setState( {
                                 turn: (this.state.turn == 'w' ? 'b':'w'),
-                                turn_num: (this.state.turn_num + 1),
                                 source: -1, // set source back to non-clicked
                                 squares: copy_squares,
                                 pieces_collected_by_white: copy_white_collection,
                             });
+
                         } else {
                             // clear highlights
                             const new_copy_squares = this.state.squares.slice();
@@ -352,31 +383,6 @@ class Board extends React.Component {
                             this.setState( {
                                 squares: new_copy_squares,
                                 source: -1, // set source back to non-clicked
-                            });
-                        }
-
-                        check_mated = this.checkmate('b', copy_squares);
-                        stale_mated = this.stalemate('b', copy_squares);
-
-                        if (check_mated) {
-                            for (let j = 0; j < 64; j++) {
-                                if (copy_squares[j].ascii == 'K') {
-                                    copy_squares[j].checked = 1;
-                                    break;
-                                }
-                            }
-                            this.setState( {
-                                squares: copy_squares,
-                            });
-                        } else if (stale_mated) {
-                            for (let j = 0; j < 64; j++) {
-                                if (copy_squares[j].ascii == 'K') {
-                                    copy_squares[j].checked = 2;
-                                    break;
-                                }
-                            }
-                            this.setState( {
-                                squares: copy_squares,
                             });
                         }
 
@@ -418,7 +424,7 @@ class Board extends React.Component {
         return array;
     }
 
-    getPieceValue(piece) {
+    get_piece_value(piece, color) {
         let pieceValue = 0;
         if (piece == null) {
             return 0;
@@ -452,138 +458,198 @@ class Board extends React.Component {
                 pieceValue = 0;
                 break;
         }
-        return piece.player == 'w' ? pieceValue : -pieceValue;
+        return piece.player == 'b' ? pieceValue : -pieceValue;
     }
 
-    evaluateBoard(squares) {
+    evaluate_black(squares) {
         let total_eval = 0;
         for (let i = 0; i < 64; i++) {
-            total_eval += this.getPieceValue(squares[i]);
+            total_eval += this.get_piece_value(squares[i]);
         }
         return total_eval;
+    }
+
+    minimax(depth, is_black_player, squares, RA_of_starts, RA_of_ends) {
+        if (depth == 0) {
+            return this.evaluate_black(squares);
+        }
+
+        let best_value = is_black_player ? -9999:9999;
+        for (let i = 0; i < 64; i++) {
+            let start = RA_of_starts[i];
+
+            if (squares[start] != null
+            && squares[start].ascii != null
+            && squares[start].player == (is_black_player ? 'b':'w')) {
+
+                for (let j = 0; j < 64; j++) {
+                    if (squares[RA_of_ends[j]] != null
+                    && this.can_move_there(start, RA_of_ends[j], squares) == true) {
+
+                        let end = RA_of_ends[j];
+                        const test_squares = squares.slice();
+                        // make the move on test board
+                        test_squares[end] = test_squares[start];
+                        test_squares[start] = new filler_piece(null);
+
+                        // pawn promotion on test board
+                        if (test_squares[end].ascii == 'P' && (end >= 56 && end <= 63)) {
+                            test_squares[end] = new Queen('b');
+                        }
+                        if (test_squares[end].ascii == 'p' && (end >= 0 && end <= 7)) {
+                            test_squares[end] = new Queen('b');
+                        }
+
+                        // black player maximizes value, white player minimizes value
+                        let value = this.minimax(depth - 1, !is_black_player, test_squares, RA_of_starts, RA_of_ends);
+                        if (is_black_player) {
+                            if (value > best_value) {
+                                best_value = value;
+                            }
+                        } else {
+                            if (value < best_value) {
+                                best_value = value;
+                            }
+                        }
+
+                    }
+                }
+
+            }
+         }
+         return best_value;
+    }
+
+    // Chess bot for black player
+    execute_bot(depth) {
+        const copy_squares = this.state.squares.slice();
+
+        let rand_start = 100;
+        let rand_end = 100;
+
+        let RA_of_starts = [];
+        let RA_of_ends = [];
+        for (let i = 0; i < 64; i++) {
+            RA_of_starts.push(i);
+            RA_of_ends.push(i);
+        }
+        RA_of_starts = this.shuffle(RA_of_starts);
+        RA_of_ends = this.shuffle(RA_of_ends);
+
+        // calculate which move is best
+        let best_value = -9999;
+        for (let i = 0; i < 64; i++) {
+            let start = RA_of_starts[i];
+
+            if (copy_squares[start] != null
+            && copy_squares[start].ascii != null
+            && copy_squares[start].player == 'b') {
+
+                for (let j = 0; j < 64; j++) {
+                    if (copy_squares[RA_of_ends[j]] != null
+                    && this.can_move_there(start, RA_of_ends[j], copy_squares) == true) {
+
+                        let end = RA_of_ends[j];
+                        const test_squares = this.state.squares.slice();
+                        // make the move on test board
+                        test_squares[end] = test_squares[start];
+                        test_squares[start] = new filler_piece(null);
+
+                        // pawn promotion on test board
+                        if (test_squares[end].ascii == 'P' && (end >= 56 && end <= 63)) {
+                            test_squares[end] = new Queen('b');
+                        }
+
+                        // board evaluation using mini_max algorithm
+                        // by looking at future turns
+                        let board_eval = this.minimax(depth - 1, false, test_squares, RA_of_starts, RA_of_ends);
+                        if (board_eval >= best_value) {
+                            best_value = board_eval;
+                            rand_start = start;
+                            rand_end = end;
+                        }
+
+                    }
+                }
+
+            }
+
+        }
+
+        if (rand_end != 100) { // rand_end == 100 indicates that black is in checkmate/stalemate
+            // when a piece is captured, record it
+            const copy_black_collection = this.state.pieces_collected_by_black.slice();
+            if (copy_squares[rand_start] != null && copy_squares[rand_start].player == 'b'
+            && copy_squares[rand_end] != null && copy_squares[rand_end].ascii != null) {
+                copy_black_collection.push(<Collected
+                    value = {copy_squares[rand_end]}/>
+                );
+            }
+
+            // clear any highlights from last move after new move is made
+            for (let j = 0; j < 64; j++) {
+                if (copy_squares[j].highlight == 1) {
+                    copy_squares[j].highlight = 0;
+                }
+            }
+
+            // make the move
+            copy_squares[rand_end] = copy_squares[rand_start];
+            copy_squares[rand_end].highlight = 1;
+            copy_squares[rand_start] = new filler_piece(null);
+            copy_squares[rand_start].highlight = 1;
+
+            // pawn promotion
+            if (copy_squares[rand_end].ascii == 'P' && (rand_end >= 56 && rand_end <= 63)) {
+                copy_squares[rand_end] = new Queen('b');
+                copy_squares[rand_end].highlight = 1;
+            }
+
+            let check_mated = this.checkmate('w', copy_squares);
+            let stale_mated = this.stalemate('w', copy_squares);
+
+            if (check_mated) {
+                for (let j = 0; j < 64; j++) {
+                    if (copy_squares[j].ascii == 'k') {
+                        copy_squares[j].checked = 1;
+                        break;
+                    }
+                }
+                for (let j = 0; j < 64; j++) {
+                    if (copy_squares[j].highlight == 1) {
+                        copy_squares[j].highlight = 0;
+                    }
+                }
+            } else if (stale_mated) {
+                for (let j = 0; j < 64; j++) {
+                    if (copy_squares[j].ascii == 'k') {
+                        copy_squares[j].checked = 2;
+                        break;
+                    }
+                }
+                for (let j = 0; j < 64; j++) {
+                    if (copy_squares[j].highlight == 1) {
+                        copy_squares[j].highlight = 0;
+                    }
+                }
+            }
+
+            this.setState( {
+                turn: 'w',
+                source: -1, // set source back to non-clicked
+                squares: copy_squares,
+                pieces_collected_by_black: copy_black_collection,
+            });
+        }
+
     }
 
     // Render the board
     render() {
         // Chess bot for black player
         if (this.state.turn == 'b') {
-            const copy_squares = this.state.squares.slice();
-            for (let j = 0; j < 64; j++) { // clear highlights
-                if (copy_squares[j].possible == 1) {
-                    copy_squares[j].possible = 0;
-                }
-            }
-
-            let rand_start = 100;
-            let rand_end = 100;
-
-            let RA_of_starts = [];
-            for (let i = 0; i < 64; i++) {
-                RA_of_starts.push(i);
-            }
-            RA_of_starts = this.shuffle(RA_of_starts);
-
-            let RA_of_ends = [];
-            for (let i = 0; i < 64; i++) {
-                RA_of_ends.push(i);
-            }
-            RA_of_ends = this.shuffle(RA_of_ends);
-
-            // algorithm for calculating which move is best
-            let best_value = -9999;
-            for (let i = 0; i < 64; i++) {
-                let start = RA_of_starts[i];
-
-                if (copy_squares[start] != null
-                && copy_squares[start].ascii != null
-                && copy_squares[start].player == 'b') {
-
-                    for (let j = 0; j < 64; j++) {
-                        if (copy_squares[RA_of_ends[j]] != null
-                        && this.can_move_there(start, RA_of_ends[j], copy_squares) == true) {
-
-                            let end = RA_of_ends[j];
-                            const test_squares = this.state.squares.slice();
-                            // make the move on test board
-                            test_squares[end] = test_squares[start];
-                            test_squares[start] = new filler_piece(null);
-
-                            // pawn promotion on test board
-                            if (test_squares[end].ascii == 'P' && (end >= 56 && end <= 63)) {
-                                test_squares[end] = new Queen('b');
-                            }
-
-                            // board evaluation
-                            let board_eval = -1 * this.evaluateBoard(test_squares);
-                            if (board_eval > best_value) {
-                                best_value = board_eval;
-                                rand_start = start;
-                                rand_end = end;
-                            }
-
-                        }
-                    }
-
-                }
-
-             }
-
-            if (rand_end != 100) { // rand_end == 100 indicates that black is in checkmate/stalemate
-                // when a piece is captured, record it
-                const copy_black_collection = this.state.pieces_collected_by_black.slice();
-                if (copy_squares[rand_start] != null && copy_squares[rand_start].player == 'b'
-                && copy_squares[rand_end] != null && copy_squares[rand_end].ascii != null) {
-                    copy_black_collection.push(<Collected
-                        value = {copy_squares[rand_end]}/>
-                    );
-                }
-
-                // clear any highlights from last move after new move is made
-                for (let j = 0; j < 64; j++) {
-                    if (copy_squares[j].highlight == 1) {
-                        copy_squares[j].highlight = 0;
-                    }
-                }
-
-                // make the move
-                copy_squares[rand_end] = copy_squares[rand_start];
-                copy_squares[rand_end].highlight = 1;
-                copy_squares[rand_start] = new filler_piece(null);
-                copy_squares[rand_start].highlight = 1;
-
-                // pawn promotion
-                if (copy_squares[rand_end].ascii == 'P' && (rand_end >= 56 && rand_end <= 63)) {
-                    copy_squares[rand_end] = new Queen('b');
-                    copy_squares[rand_end].highlight = 1;
-                }
-
-                let check_mated = this.checkmate('w', copy_squares);
-                let stale_mated = this.stalemate('w', copy_squares);
-
-                if (check_mated) {
-                    for (let j = 0; j < 64; j++) {
-                        if (copy_squares[j].ascii == 'k') {
-                            copy_squares[j].checked = 1;
-                            break;
-                        }
-                    }
-                } else if (stale_mated) {
-                    for (let j = 0; j < 64; j++) {
-                        if (copy_squares[j].ascii == 'k') {
-                            copy_squares[j].checked = 2;
-                            break;
-                        }
-                    }
-                }
-
-                this.setState( {
-                    turn: 'w',
-                    turn_num: (this.state.turn_num + 1),
-                    source: -1, // set source back to non-clicked
-                    squares: copy_squares,
-                    pieces_collected_by_black: copy_black_collection,
-                });
-            }
+            let search_depth = 3;
+            this.execute_bot(search_depth);
         }
 
         const board = [];
