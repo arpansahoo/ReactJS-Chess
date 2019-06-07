@@ -46,11 +46,6 @@ class Board extends React.Component {
                 break;
             }
         }
-        for (let j = 0; j < 64; j++) {
-            if (copy_squares[j].highlight == 1) {
-                copy_squares[j].highlight = 0;
-            }
-        }
         return copy_squares;
     }
     // clear highlights
@@ -681,7 +676,6 @@ class Board extends React.Component {
                                 pieces_collected_by_white: copy_white_collection,
                             });
 
-                            // Chess bot for black player
                             let search_depth = 3;
                             this.execute_bot(search_depth, copy_squares);
                             return 'black made move';
@@ -721,6 +715,12 @@ class Board extends React.Component {
 
     }
 
+/*
+    // Chess bot for black player
+    let search_depth = 3;
+    this.execute_bot(search_depth, copy_squares);
+    return 'black made move';
+*/
     // Render the page
     render() {
         const board = [];
@@ -876,7 +876,6 @@ class Board extends React.Component {
         return (
 
         <div>
-
             <div className="left_screen">
 
                 <div className="side_box">
@@ -1021,7 +1020,7 @@ function initializeBoard() {
 
 // return if value is even
 function isEven(value) {
-    return value %2;
+    return value % 2;
 }
 
 // return button for axes of the board
@@ -1030,7 +1029,6 @@ function Label(props) {
 }
 
 // helper function to help generate
-// array with pieces collected by a player
 function Collected(props) {
     return ( <button className = {"collected"}> {props.value.icon} </button> );
 }
