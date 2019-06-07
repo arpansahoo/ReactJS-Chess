@@ -209,6 +209,7 @@ a:active {
 }
 
 .collected {
+	outline: none !important;
 	border: none;
 	border-width: 0px;
 	background-color: transparent;
