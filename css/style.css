@@ -24,10 +24,6 @@ a:active {
  	color: green;
 }
 
-a:focus {
-	outline: none !important;
-}
-
 .right_screen {
 	position: relative;
 	display: inline-block;
@@ -197,6 +193,7 @@ a:focus {
 }
 
 .square {
+	outline: none !important;
 	border: none;
 	border-width: 0px;
 	float: left;

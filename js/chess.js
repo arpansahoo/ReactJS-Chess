@@ -877,7 +877,7 @@ class Board extends React.Component {
 
                 <div className="side_box">
                     <div className="content">
-                        <p className="header_font">Pokémon Chessl</p>
+                        <p className="header_font">Pokémon Chessw</p>
                         <p className="medium_font">Gotta Capture 'Em All!&nbsp;
                             <a href="./how_to_play.html">How to Play</a>
                         </p>
