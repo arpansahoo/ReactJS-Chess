@@ -6,22 +6,26 @@ body, html {
 
 /* unvisited link */
 a:link {
- color: #242424;
+ 	color: #242424;
 }
 
 /* visited link */
 a:visited {
- color: #242424;
+ 	color: #242424;
 }
 
 /* mouse over link */
 a:hover {
- color: green;
+ 	color: green;
 }
 
 /* selected link */
 a:active {
- color: green;
+ 	color: green;
+}
+
+a:focus {
+	outline: none;
 }
 
 .right_screen {
