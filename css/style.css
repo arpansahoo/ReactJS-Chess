@@ -73,6 +73,7 @@ a:active {
 }
 
 .player_box {
+	outline: none !important;
 	width: 45%;
 	background-color: #deeaee;
 	padding: 0 15px 5px;
@@ -163,6 +164,7 @@ a:active {
 }
 
 .row_label {
+	outline: none !important;
 	position: relative;
 	top: calc(50% - 42vmin);
 	left: calc(50% - 54vmin);
@@ -171,6 +173,7 @@ a:active {
 }
 
 .col_label {
+	outline: none !important;
 	position: relative;
 	top: calc(50% - 43vmin);
 	left: calc(50% - 45vmin);
@@ -179,6 +182,7 @@ a:active {
 }
 
 .label {
+	outline: none !important;
 	background-color: transparent;
 	color: #deeaee;
 	border: none;
