@@ -25,7 +25,7 @@ a:active {
 }
 
 a:focus {
-	outline: none;
+	outline: none !important;
 }
 
 .right_screen {
