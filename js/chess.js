@@ -97,17 +97,10 @@ class Board extends React.Component {
         let check_mated = this.checkmate(player, copy_squares);
         let stale_mated = this.stalemate(player, copy_squares);
 
-        if (check_mated) {
+        if (check_mated || stale_mated) {
             for (let j = 0; j < 64; j++) {
                 if (copy_squares[j].ascii == (player == 'b' ? 'K':'k')) {
-                    copy_squares[j].checked = 1; // red color
-                    break;
-                }
-            }
-        } else if (stale_mated) {
-            for (let j = 0; j < 64; j++) {
-                if (copy_squares[j].ascii == (player == 'b' ? 'K':'k')) {
-                    copy_squares[j].checked = 2; // orange color
+                    copy_squares[j].checked = (check_mated ? 1:2);
                     break;
                 }
             }
@@ -140,7 +133,6 @@ class Board extends React.Component {
                     --col_ctr;
                 }
             }
-
             if (row_ctr != row_diff) {
                 if (row_diff > 0) {
                     ++row_ctr;
@@ -192,21 +184,15 @@ class Board extends React.Component {
         const copy_squares = squares.slice();
         // if the piece is a bishop, queen, rook, or pawn,
         // it cannot skip over pieces
-        var bqrp = copy_squares[start].ascii == 'r' ||
-            copy_squares[start].ascii == 'R' ||
-            copy_squares[start].ascii == 'q' ||
-            copy_squares[start].ascii == 'Q' ||
-            copy_squares[start].ascii == 'b' ||
-            copy_squares[start].ascii == 'B' ||
-            copy_squares[start].ascii == 'p' ||
-            copy_squares[start].ascii == 'P';
+        var bqrp = copy_squares[start].ascii.toLowerCase() == 'r'
+            || copy_squares[start].ascii.toLowerCase() == 'q'
+            || copy_squares[start].ascii.toLowerCase() == 'b'
+            || copy_squares[start].ascii.toLowerCase() == 'p';
         let invalid = bqrp == true && this.check_blockers(start, end, squares) == true;
-        if (invalid) {
+        if (invalid)
             return invalid;
-        }
         // checking for certain rules regarding the pawn
-        var pawn = copy_squares[start].ascii == 'p' ||
-            copy_squares[start].ascii == 'P';
+        var pawn = copy_squares[start].ascii.toLowerCase() == 'p';
         invalid = pawn == true && this.check_pawn(start, end, squares) == false;
 
         return invalid;
@@ -240,16 +226,14 @@ class Board extends React.Component {
         if (start == end) { // cannot move to the position you're already sitting in
             return false;
         }
-        var player = squares[start].player;
         // player cannot capture her own piece
         // and piece must be able to physically move from start to end
-        if (player == squares[end].player || squares[start].can_move(start, end) == false) {
+        var player = squares[start].player;
+        if (player == squares[end].player || squares[start].can_move(start, end) == false)
             return false;
-        }
         // player cannot make an invalid move
-        if (this.invalid_move(start, end, squares) == true) {
+        if (this.invalid_move(start, end, squares) == true)
             return false;
-        }
 
         // player cannot put or keep herself in check
         const copy_squares = squares.slice();
@@ -260,18 +244,16 @@ class Board extends React.Component {
         } else if (copy_squares[end].ascii == 'P' && (end >= 56 && end <= 63)) {
             copy_squares[end] = new Queen('b');
         }
-        if (this.in_check(player, copy_squares) == true) {
+        if (this.in_check(player, copy_squares) == true)
             return false;
-        }
 
         return true;
     }
 
     // return true if player is in stalemate
     stalemate(player, squares) {
-        if (this.in_check(player, squares)) {
+        if (this.in_check(player, squares))
             return false;
-        }
         // if there is even only 1 way to move her piece,
         // the player is not in stalemate
         for (let i = 0; i < 64; i++) {
@@ -287,9 +269,8 @@ class Board extends React.Component {
     }
     // return true if player is in checkmate
     checkmate(player, squares) {
-        if (!this.in_check(player, squares) || this.stalemate(player, squares)) {
+        if (!this.in_check(player, squares) || this.stalemate(player, squares))
             return false;
-        }
         // if there is even only 1 way to move her piece,
         // the player is not in checkmate
         for (let i = 0; i < 64; i++) {
@@ -320,9 +301,8 @@ class Board extends React.Component {
     // helper function for evaluate black: return value of a piece
     get_piece_value(piece, position) {
         let pieceValue = 0;
-        if (piece == null) {
+        if (piece == null || piece.ascii == null)
             return 0;
-        }
 
         // these arrays help adjust the piece's value
         // depending on where the piece is on the board
@@ -336,7 +316,6 @@ class Board extends React.Component {
             [0.5,  1.0, 1.0,  -2.0, -2.0,  1.0,  1.0,  0.5],
             [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0]
         ];
-
         var pawnEvalBlack = this.reverseArray(pawnEvalWhite);
 
         var knightEval = [
@@ -360,7 +339,6 @@ class Board extends React.Component {
             [ -1.0,  0.5,  0.0,  0.0,  0.0,  0.0,  0.5, -1.0],
             [ -2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0]
         ];
-
         var bishopEvalBlack = this.reverseArray(bishopEvalWhite);
 
         var rookEvalWhite = [
@@ -373,7 +351,6 @@ class Board extends React.Component {
             [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
             [  0.0,   0.0, 0.0,  0.5,  0.5,  0.0,  0.0,  0.0]
         ];
-
         var rookEvalBlack = this.reverseArray(rookEvalWhite);
 
         var evalQueen = [
@@ -397,34 +374,27 @@ class Board extends React.Component {
             [  2.0,  2.0,  0.0,  0.0,  0.0,  0.0,  2.0,  2.0],
             [  2.0,  3.0,  1.0,  0.0,  0.0,  1.0,  3.0,  2.0]
         ];
-
         var kingEvalBlack = this.reverseArray(kingEvalWhite);
 
         let x = Math.floor(position / 8);
         let y = position % 8;
 
-        switch (piece.ascii) {
-            case 'P':
+        switch (piece.ascii.toLowerCase()) {
             case 'p':
                 pieceValue = 10 + ( piece.ascii == 'p' ? pawnEvalWhite[y][x] : pawnEvalBlack[y][x] );
                 break;
-            case 'R':
             case 'r':
                 pieceValue = 50 + ( piece.ascii == 'r' ? rookEvalWhite[y][x] : rookEvalBlack[y][x] );
                 break;
-            case 'N':
             case 'n':
                 pieceValue = 30 + knightEval[y][x];
                 break;
-            case 'B':
             case 'b':
                 pieceValue = 30 + ( piece.ascii == 'b' ? bishopEvalWhite[y][x] : bishopEvalBlack[y][x] );
                 break;
-            case 'Q':
             case 'q':
                 pieceValue = 90 + evalQueen[y][x];
                 break;
-            case 'K':
             case 'k':
                 pieceValue = 900 + ( piece.ascii == 'k' ? kingEvalWhite[y][x] : kingEvalBlack[y][x] );
                 break;
@@ -446,25 +416,27 @@ class Board extends React.Component {
      * minimax algorithm for chess bot - recursive method to look a few moves ahead
      */
     minimax(depth, is_black_player, alpha, beta, squares, RA_of_starts, RA_of_ends) {
-        if (depth == 0) {
+        if (depth == 0)
             return this.evaluate_black(squares);
-        }
 
         let best_value = is_black_player ? -9999:9999;
+        // iterate through the possible start positions
         for (let i = 0; i < 64; i++) {
             let start = RA_of_starts[i];
+            let isPlayerPiece = squares[start] != null && squares[start].ascii != null
+                && squares[start].player == (is_black_player ? 'b':'w');
 
-            // start should be the position of a black piece
-            if (squares[start] != null
-            && squares[start].ascii != null
-            && squares[start].player == (is_black_player ? 'b':'w')) {
-
+            // start should be the position of a piece owned by the player
+            if (isPlayerPiece) {
+                /* iterate through the possible end positions for each possible start position
+                 * and use recursion to see what the value of each possible move will be a few moves
+                 * down the road. if the move being analyzed is black's turn, the value will maximize
+                 * best_value; but if the move being analyzed is white's turn, the value will minimize
+                 * best_value
+                 */
                 for (let j = 0; j < 64; j++) {
-
-                    if (squares[RA_of_ends[j]] != null
-                    && this.can_move_there(start, RA_of_ends[j], squares) == true) {
-
-                        let end = RA_of_ends[j];
+                    let end = RA_of_ends[j];
+                    if (squares[end] != null && this.can_move_there(start, end, squares) == true) {
                         // make the move on test board
                         let test_squares = squares.slice();
                         test_squares = this.make_move(test_squares, start, end);
@@ -473,21 +445,17 @@ class Board extends React.Component {
                         let value = this.minimax(depth - 1, !is_black_player, alpha, beta,
                             test_squares, RA_of_starts, RA_of_ends);
                         if (is_black_player) {
-                            if (value > best_value) {
+                            if (value > best_value)
                                 best_value = value;
-                            }
                             alpha = Math.max(alpha, value); //alpha-beta pruning
-                            if (beta <= alpha) {
+                            if (beta <= alpha)
                                 return best_value;
-                            }
                         } else {
-                            if (value < best_value) {
+                            if (value < best_value)
                                 best_value = value;
-                            }
                             beta = Math.min(beta, value); //alpha-beta pruning
-                            if (beta <= alpha) {
+                            if (beta <= alpha)
                                 return best_value;
-                            }
                         }
                     }
                 }
@@ -499,7 +467,6 @@ class Board extends React.Component {
 
     // Chess bot for black player
     execute_bot(depth, passed_in_squares) {
-        //alert("bot is running...");
         let copy_squares = passed_in_squares.slice();
         let rand_start = 100;
         let rand_end = 100;
@@ -514,41 +481,36 @@ class Board extends React.Component {
 
         // calculate which move is best
         let best_value = -9999;
+        // iterate through the start positions
         for (let i = 0; i < 64; i++) {
             let start = RA_of_starts[i];
-
+            let isBlackPiece = copy_squares[start] != null && copy_squares[start].ascii != null
+                && copy_squares[start].player == 'b';
             // start should be the position of a black piece
-            if (copy_squares[start] != null
-            && copy_squares[start].ascii != null
-            && copy_squares[start].player == 'b') {
-
-                /* iterate through the possible end positions and choose the movement from start to end that results
-                 * in the best position for black in terms of value calculated by evaluate_black; minmax algo
-                 * lets bot look ahead a few moves and thereby pick the move that is best in the long run
+            if (isBlackPiece) {
+                /* iterate through the possible end positions for each possible start position
+                 * and choose the movement from start to end that results in the best position for black
+                 * in terms of value calculated by evaluate_black; minimax algo lets bot look ahead a few moves
+                 * and thereby pick the move that results in the best value in the long run
                  */
                 for (let j = 0; j < 64; j++) {
-                    if (copy_squares[RA_of_ends[j]] != null
-                    && this.can_move_there(start, RA_of_ends[j], copy_squares) == true) {
-
-                        let end = RA_of_ends[j];
+                    let end = RA_of_ends[j];
+                    if (copy_squares[end] != null && this.can_move_there(start, end, copy_squares) == true) {
                         let test_squares = passed_in_squares.slice();
                         test_squares = this.make_move(test_squares, start, end);
 
                         // board evaluation using mini_max algorithm
                         // by looking at future turns
-                        let board_eval = this.minimax(depth - 1, false, -1000, 1000,
-                            test_squares, RA_of_starts, RA_of_ends);
+                        let board_eval = this.minimax(depth - 1, false, -1000, 1000, test_squares,
+                            RA_of_starts, RA_of_ends);
                         if (board_eval >= best_value) {
                             best_value = board_eval;
                             rand_start = start;
                             rand_end = end;
                         }
-
                     }
                 }
-
             }
-
         }
 
         if (rand_end != 100) { // rand_end == 100 indicates that black is in checkmate/stalemate
@@ -571,7 +533,6 @@ class Board extends React.Component {
                 pieces_collected_by_black: copy_black_collection,
             });
         }
-
     }
 
     // handle user action of clicking square on board
@@ -582,17 +543,14 @@ class Board extends React.Component {
         let stale_mated = this.stalemate('w', copy_squares) && this.state.turn == 'w'
         || this.stalemate('b', copy_squares) && this.state.turn == 'b';
 
-        if (check_mated || stale_mated) {
+        if (check_mated || stale_mated)
             return 'game-over';
-        }
 
         // first click
         if (this.state.source == -1 && this.state.running == 0) { // no source has been selected yet
-
             // can only pick a piece that is your own
-            if (copy_squares[i].player != this.state.turn) {
+            if (copy_squares[i].player != this.state.turn)
                 return -1;
-            }
 
             //can only pick a piece that is not a blank square
             if (copy_squares[i].player != null) {
@@ -669,8 +627,7 @@ class Board extends React.Component {
 
                 // when a piece is captured, record it
                 const copy_white_collection = this.state.pieces_collected_by_white.slice();
-                if (copy_squares[this.state.source].player == this.state.turn
-                && copy_squares[i].ascii != null) {
+                if (copy_squares[this.state.source].player == this.state.turn && copy_squares[i].ascii != null) {
                     copy_white_collection.push(<Collected value = {copy_squares[i]}/>);
                 }
 
@@ -686,14 +643,32 @@ class Board extends React.Component {
 
                 // chess bot for black player
                 let search_depth = 3;
-                setTimeout(() => {
-                    this.execute_bot(search_depth, copy_squares);
-                }, 700);
+                setTimeout(() => { this.execute_bot(search_depth, copy_squares); }, 700);
                 return 'black made move';
-
             }
         }
+    }
 
+    // return the color of a square for the chess board
+    calc_squareColor(i, j) {
+        let square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
+            ? "white_square" : "black_square";
+        if (this.state.squares[(i*8) + j].highlight == 1) {
+            square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
+            ? "selected_white_square" : "selected_black_square";
+        }
+        if (this.state.squares[(i*8) + j].possible == 1) {
+            square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
+            ? "highlighted_white_square" : "highlighted_black_square";
+        }
+        if (this.state.squares[(i*8) + j].in_check == 1) {
+            square_color = "in_check_square";
+        }
+        if (this.state.squares[(i*8) + j].checked >= 1) {
+            square_color = (this.state.squares[(i*8) + j].checked == 1)
+            ? "checked_square":"stale_square";
+        }
+        return square_color;
     }
 
     // Render the page
@@ -702,7 +677,6 @@ class Board extends React.Component {
         for (let i = 8; i > 0; i--) {
             row_nums.push(<Label value = {i} />);
         }
-
         const col_nums = [];
         for (let i = 1; i < 9; i++) {
             let letter;
@@ -723,127 +697,26 @@ class Board extends React.Component {
         for (let i = 0; i < 8; i++) {
             const squareRows = [];
             for (let j = 0; j < 8; j++) {
+                let square_corner = null;
                 if (i == 0 && j == 0) {
-                    let square_color = (this.state.squares[(i*8) + j].highlight == 0)
-                        ? "white_square":"selected_white_square";
-                    if (this.state.squares[(i*8) + j].possible == 1) {
-                        square_color = "highlighted_white_square";
-                    }
-                    if (this.state.squares[(i*8) + j].in_check == 1) {
-                        square_color = "in_check_square";
-                    }
-                    if (this.state.squares[(i*8) + j].checked >= 1) {
-                        square_color = (this.state.squares[(i*8) + j].checked == 1)
-                        ? "checked_square":"stale_square";
-                    }
-                    squareRows.push(<Square
-                        value = {this.state.squares[(i*8) + j]}
-                        color = {square_color}
-                        corner = " top_left_square"
-                        onClick = {() => this.handleClick((i*8) + j)} />
-                    );
+                    square_corner = " top_left_square";
                 } else if (i == 0 && j == 7) {
-                    let square_color = (this.state.squares[(i*8) + j].highlight == 0)
-                        ? "black_square":"selected_black_square";
-                    if (this.state.squares[(i*8) + j].possible == 1) {
-                        square_color = "highlighted_black_square";
-                    }
-                    if (this.state.squares[(i*8) + j].in_check == 1) {
-                        square_color = "in_check_square";
-                    }
-                    if (this.state.squares[(i*8) + j].checked >= 1) {
-                        square_color = (this.state.squares[(i*8) + j].checked == 1)
-                        ? "checked_square":"stale_square";
-                    }
-                    squareRows.push(<Square
-                        value = {this.state.squares[(i*8) + j]}
-                        color = {square_color}
-                        corner = " top_right_square"
-                        onClick = {() => this.handleClick((i*8) + j)} />
-                    );
+                    square_corner = " top_right_square";
                 } else if (i == 7 && j == 0) {
-                    let square_color = (this.state.squares[(i*8) + j].highlight == 0)
-                        ? "black_square":"selected_black_square";
-                    if (this.state.squares[(i*8) + j].possible == 1) {
-                        square_color = "highlighted_black_square";
-                    }
-                    if (this.state.squares[(i*8) + j].in_check == 1) {
-                        square_color = "in_check_square";
-                    }
-                    if (this.state.squares[(i*8) + j].checked >= 1) {
-                        square_color = (this.state.squares[(i*8) + j].checked == 1)
-                        ? "checked_square":"stale_square";
-                    }
-                    squareRows.push(<Square
-                        value = {this.state.squares[(i*8) + j]}
-                        color = {square_color}
-                        corner = " bottom_left_square"
-                        onClick = {() => this.handleClick((i*8) + j)} />
-                    );
-                } else if (i == 7 && j ==7) {
-                    let square_color = (this.state.squares[(i*8) + j].highlight == 0)
-                        ? "white_square":"selected_white_square";
-                    if (this.state.squares[(i*8) + j].possible == 1) {
-                        square_color = "highlighted_white_square";
-                    }
-                    if (this.state.squares[(i*8) + j].in_check == 1) {
-                        square_color = "in_check_square";
-                    }
-                    if (this.state.squares[(i*8) + j].checked >= 1) {
-                        square_color = (this.state.squares[(i*8) + j].checked == 1)
-                        ? "checked_square":"stale_square";
-                    }
-                    squareRows.push(<Square
-                        value = {this.state.squares[(i*8) + j]}
-                        color = {square_color}
-                        corner = " bottom_right_square"
-                        onClick = {() => this.handleClick((i*8) + j)} />
-                    );
+                    square_corner = " bottom_left_square";
+                } else if (i == 7 && j == 7) {
+                    square_corner = " bottom_right_square";
                 } else {
-                    let square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
-                        ? "white_square" : "black_square";
-                    if (this.state.squares[(i*8) + j].highlight == 0) {
-                        if (this.state.squares[(i*8) + j].possible == 1) {
-                            square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
-                            ? "highlighted_white_square" : "highlighted_black_square";
-                        }
-                        if (this.state.squares[(i*8) + j].in_check == 1) {
-                            square_color = "in_check_square";
-                        }
-                        if (this.state.squares[(i*8) + j].checked >= 1) {
-                            square_color = (this.state.squares[(i*8) + j].checked == 1)
-                            ? "checked_square":"stale_square";
-                        }
-                        squareRows.push(<Square
-                            value = {this.state.squares[(i*8) + j]}
-                            color = {square_color}
-                            corner = ""
-                            onClick = {() => this.handleClick((i*8) + j)} />
-                        );
-                    } else {
-                        let square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
-                            ? "selected_white_square" : "selected_black_square";
-                        var original_color = square_color;
-                        if (this.state.squares[(i*8) + j].possible == 1) {
-                            square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
-                            ? "highlighted_white_square" : "highlighted_black_square";
-                        }
-                        if (this.state.squares[(i*8) + j].in_check == 1) {
-                            square_color = "in_check_square";
-                        }
-                        if (this.state.squares[(i*8) + j].checked >= 1) {
-                            square_color = (this.state.squares[(i*8) + j].checked == 1)
-                            ? "checked_square":"stale_square";
-                        }
-                        const copy_squares = this.state.squares.slice();
-                        squareRows.push(<Square
-                            value = {this.state.squares[(i*8) + j]}
-                            color = {square_color}
-                            corner = ""
-                            onClick = {() => this.handleClick((i*8) + j)} />
-                        );
-                    }
+                    square_corner = "";
                 }
+
+                let square_color = this.calc_squareColor(i, j);
+                squareRows.push(<Square
+                    value = {this.state.squares[(i*8) + j]}
+                    color = {square_color}
+                    corner = {square_corner}
+                    onClick = {() => this.handleClick((i*8) + j)} />
+                );
             }
             board.push(<div>{squareRows}</div>)
         }
@@ -879,12 +752,10 @@ class Board extends React.Component {
                         </div>
                     </div>
                     <div className="wrapper">
-                        {this.state.turn == 'w' ? <div className="highlight_box">
-                        </div> : <div className="highlight_box transparent">
-                        </div>}
-                        {this.state.turn == 'b' ? <div className="highlight_box">
-                        </div> : <div className="highlight_box transparent">
-                        </div>}
+                        { this.state.turn == 'w' ? <div className="highlight_box"></div>
+                            : <div className="highlight_box transparent"></div> }
+                        { this.state.turn == 'b' ? <div className="highlight_box"></div>
+                            : <div className="highlight_box transparent"></div> }
                     </div>
 
                     <div className="content alt2">
@@ -903,18 +774,18 @@ class Board extends React.Component {
                             {this.checkmate('b', this.state.squares) == true ? 'You won by checkmate!':''}
                         </p>
                         <p className="medium_font">
-                            {((this.stalemate('w', this.state.squares) && this.state.turn == 'w') == true) ? 'The match is in stalemate. Game over.':''}
+                            {((this.stalemate('w', this.state.squares) && this.state.turn == 'w') == true)
+                                ? 'The match is in stalemate. Game over.':''}
                         </p>
                         <p className="medium_font">
-                            {((this.stalemate('b', this.state.squares) && this.state.turn == 'b') == true) ? 'The match is in stalemate. Game over.':''}
+                            {((this.stalemate('b', this.state.squares) && this.state.turn == 'b') == true)
+                                ? 'The match is in stalemate. Game over.':''}
                         </p>
                     </div>
 
                     <div className="button_wrapper">
                         <button className="reset_button" onClick={() => this.reset()}>
-                            <p className="medium_font">
-                                Restart Game
-                            </p>
+                            <p className="medium_font"> Restart Game </p>
                         </button>
                     </div>
 
@@ -923,15 +794,9 @@ class Board extends React.Component {
             </div>
 
             <div className="right_screen">
-                <div className="row_label">
-                    {row_nums}
-                </div>
-                <div className="table">
-                    {board}
-                </div>
-                <div className="col_label">
-                    {col_nums}
-                </div>
+                <div className="row_label"> {row_nums} </div>
+                <div className="table"> {board} </div>
+                <div className="col_label"> {col_nums} </div>
             </div>
 
         </div>
@@ -985,9 +850,8 @@ function initializeBoard() {
     squares[56+4] = new King('w');
 
     for (let i = 0; i < 64; i++) {
-        if (squares[i] == null) {
+        if (squares[i] == null)
             squares[i] = new filler_piece(null);
-        }
     }
 
     return squares;
@@ -1182,24 +1046,20 @@ class Pawn {
 
         if (this.player == 'w') {
             if (col_diff == 0) {
-                if (row_diff == 1 || row_diff == 2) {
+                if (row_diff == 1 || row_diff == 2)
                     return true;
-                }
             } else if (col_diff == -1 || col_diff == 1) {
-                if (row_diff == 1) {
+                if (row_diff == 1)
                     return true;
-                }
             }
         }
         else {
             if (col_diff == 0) {
-                if (row_diff == -2 || row_diff == -1) {
+                if (row_diff == -2 || row_diff == -1)
                     return true;
-                }
             } else if (col_diff == -1 || col_diff == 1) {
-                if (row_diff == -1) {
+                if (row_diff == -1)
                     return true;
-                }
             }
         }
         return false;
