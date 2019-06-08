@@ -60,54 +60,6 @@ class Board extends React.Component {
         return copy_squares;
     }
 
-    // clear the red higlight for checked king
-    clear_check_highlight(squares, player) {
-        const copy_squares = squares.slice();
-        for (let j = 0; j < 64; j++) {
-            if (copy_squares[j].ascii == (player == 'w' ? 'k':'K')) {
-                copy_squares[j].in_check = 0; // user has heeded warning
-                break;
-            }
-        }
-        return copy_squares;
-    }
-    // clear highlights for possible destination squares
-    clear_possible_highlight(squares) {
-        const copy_squares = squares.slice();
-        for (let j = 0; j < 64; j++) {
-            if (copy_squares[j].possible == 1) {
-                copy_squares[j].possible = 0;
-            }
-        }
-        return copy_squares;
-    }
-    // clear highlights for squares that are selected
-    clear_highlight(squares) {
-        const copy_squares = squares.slice();
-        for (let j = 0; j < 64; j++) {
-            if (copy_squares[j].highlight == 1) {
-                copy_squares[j].highlight = 0;
-            }
-        }
-        return copy_squares;
-    }
-    // highlight king if in checkmate/stalemate
-    highlight_mate(squares, player) {
-        const copy_squares = squares.slice();
-        let check_mated = this.checkmate(player, copy_squares);
-        let stale_mated = this.stalemate(player, copy_squares);
-
-        if (check_mated || stale_mated) {
-            for (let j = 0; j < 64; j++) {
-                if (copy_squares[j].ascii == (player == 'b' ? 'K':'k')) {
-                    copy_squares[j].checked = (check_mated ? 1:2);
-                    break;
-                }
-            }
-        }
-        return copy_squares;
-    }
-
     // certain pieces cannot skip over pieces
     check_blockers(start, end, squares) {
         var start_row = 8 - Math.floor(start / 8);
@@ -178,7 +130,6 @@ class Board extends React.Component {
         }
         return true;
     }
-
     // return true if move from start to end is illegal
     invalid_move(start, end, squares) {
         const copy_squares = squares.slice();
@@ -196,30 +147,6 @@ class Board extends React.Component {
         invalid = pawn == true && this.check_pawn(start, end, squares) == false;
 
         return invalid;
-    }
-    // returns true if player is in check
-    in_check(player, squares) {
-        let king = (player == 'w' ? 'k':'K');
-        let position_of_king = null;
-        const copy_squares = squares.slice();
-        for (let i = 0; i < 64; i++) {
-            if (copy_squares[i].ascii == king) {
-                position_of_king = i;
-                break;
-            }
-        }
-
-        // traverse through the board and determine
-        // any of the opponent's pieces can legally take the player's king
-        for (let i = 0; i < 64; i++) {
-            if (copy_squares[i].player != null && copy_squares[i].player != player) {
-                if (copy_squares[i].can_move(i, position_of_king) == true
-                && this.invalid_move(i, position_of_king, squares) == false) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
     // returns true if there are any possible moves
     can_move_there(start, end, squares) {
@@ -250,6 +177,30 @@ class Board extends React.Component {
         return true;
     }
 
+    // returns true if player is in check
+    in_check(player, squares) {
+        let king = (player == 'w' ? 'k':'K');
+        let position_of_king = null;
+        const copy_squares = squares.slice();
+        for (let i = 0; i < 64; i++) {
+            if (copy_squares[i].ascii == king) {
+                position_of_king = i;
+                break;
+            }
+        }
+
+        // traverse through the board and determine
+        // any of the opponent's pieces can legally take the player's king
+        for (let i = 0; i < 64; i++) {
+            if (copy_squares[i].player != null && copy_squares[i].player != player) {
+                if (copy_squares[i].can_move(i, position_of_king) == true
+                && this.invalid_move(i, position_of_king, squares) == false) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     // return true if player is in stalemate
     stalemate(player, squares) {
         if (this.in_check(player, squares))
@@ -285,136 +236,15 @@ class Board extends React.Component {
         return true;
     }
 
-    // helper function for execute_bot: Fisher-Yates shuffle
-    shuffle(param) {
-        const array = param.slice();
-        for (let i = array.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
-            [array[i], array[j]] = [array[j], array[i]]; // swap elements
-        }
-        return array;
-    }
-    // helper function for get_piece_value: function to reverse an array
-    reverseArray(array) {
-        return array.slice().reverse();
-    }
-    // helper function for evaluate black: return value of a piece
-    get_piece_value(piece, position) {
-        let pieceValue = 0;
-        if (piece == null || piece.ascii == null)
-            return 0;
-
-        // these arrays help adjust the piece's value
-        // depending on where the piece is on the board
-        var pawnEvalWhite = [
-            [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],
-            [5.0,  5.0,  5.0,  5.0,  5.0,  5.0,  5.0,  5.0],
-            [1.0,  1.0,  2.0,  3.0,  3.0,  2.0,  1.0,  1.0],
-            [0.5,  0.5,  1.0,  2.5,  2.5,  1.0,  0.5,  0.5],
-            [0.0,  0.0,  0.0,  2.0,  2.0,  0.0,  0.0,  0.0],
-            [0.5, -0.5, -1.0,  0.0,  0.0, -1.0, -0.5,  0.5],
-            [0.5,  1.0, 1.0,  -2.0, -2.0,  1.0,  1.0,  0.5],
-            [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0]
-        ];
-        var pawnEvalBlack = this.reverseArray(pawnEvalWhite);
-
-        var knightEval = [
-            [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0],
-            [-4.0, -2.0,  0.0,  0.0,  0.0,  0.0, -2.0, -4.0],
-            [-3.0,  0.0,  1.0,  1.5,  1.5,  1.0,  0.0, -3.0],
-            [-3.0,  0.5,  1.5,  2.0,  2.0,  1.5,  0.5, -3.0],
-            [-3.0,  0.0,  1.5,  2.0,  2.0,  1.5,  0.0, -3.0],
-            [-3.0,  0.5,  1.0,  1.5,  1.5,  1.0,  0.5, -3.0],
-            [-4.0, -2.0,  0.0,  0.5,  0.5,  0.0, -2.0, -4.0],
-            [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0]
-        ];
-
-        var bishopEvalWhite = [
-            [ -2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0],
-            [ -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -1.0],
-            [ -1.0,  0.0,  0.5,  1.0,  1.0,  0.5,  0.0, -1.0],
-            [ -1.0,  0.5,  0.5,  1.0,  1.0,  0.5,  0.5, -1.0],
-            [ -1.0,  0.0,  1.0,  1.0,  1.0,  1.0,  0.0, -1.0],
-            [ -1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, -1.0],
-            [ -1.0,  0.5,  0.0,  0.0,  0.0,  0.0,  0.5, -1.0],
-            [ -2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0]
-        ];
-        var bishopEvalBlack = this.reverseArray(bishopEvalWhite);
-
-        var rookEvalWhite = [
-            [  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],
-            [  0.5,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  0.5],
-            [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-            [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-            [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-            [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-            [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-            [  0.0,   0.0, 0.0,  0.5,  0.5,  0.0,  0.0,  0.0]
-        ];
-        var rookEvalBlack = this.reverseArray(rookEvalWhite);
-
-        var evalQueen = [
-            [ -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0],
-            [ -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -1.0],
-            [ -1.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0],
-            [ -0.5,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5],
-            [  0.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5],
-            [ -1.0,  0.5,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0],
-            [ -1.0,  0.0,  0.5,  0.0,  0.0,  0.0,  0.0, -1.0],
-            [ -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0]
-        ];
-
-        var kingEvalWhite = [
-            [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
-            [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
-            [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
-            [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
-            [ -2.0, -3.0, -3.0, -4.0, -4.0, -3.0, -3.0, -2.0],
-            [ -1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -1.0],
-            [  2.0,  2.0,  0.0,  0.0,  0.0,  0.0,  2.0,  2.0],
-            [  2.0,  3.0,  1.0,  0.0,  0.0,  1.0,  3.0,  2.0]
-        ];
-        var kingEvalBlack = this.reverseArray(kingEvalWhite);
-
-        let x = Math.floor(position / 8);
-        let y = position % 8;
-
-        switch (piece.ascii.toLowerCase()) {
-            case 'p':
-                pieceValue = 10 + ( piece.ascii == 'p' ? pawnEvalWhite[y][x] : pawnEvalBlack[y][x] );
-                break;
-            case 'r':
-                pieceValue = 50 + ( piece.ascii == 'r' ? rookEvalWhite[y][x] : rookEvalBlack[y][x] );
-                break;
-            case 'n':
-                pieceValue = 30 + knightEval[y][x];
-                break;
-            case 'b':
-                pieceValue = 30 + ( piece.ascii == 'b' ? bishopEvalWhite[y][x] : bishopEvalBlack[y][x] );
-                break;
-            case 'q':
-                pieceValue = 90 + evalQueen[y][x];
-                break;
-            case 'k':
-                pieceValue = 900 + ( piece.ascii == 'k' ? kingEvalWhite[y][x] : kingEvalBlack[y][x] );
-                break;
-            default:
-                pieceValue = 0;
-                break;
-        }
-        return piece.player == 'b' ? pieceValue : -pieceValue;
-    }
     // helper function for minimax: calculate black's status using piece values
     evaluate_black(squares) {
         let total_eval = 0;
         for (let i = 0; i < 64; i++) {
-            total_eval += this.get_piece_value(squares[i], i);
+            total_eval += get_piece_value(squares[i], i);
         }
         return total_eval;
     }
-    /* helper function for execute_bot:
-     * minimax algorithm for chess bot - recursive method to look a few moves ahead
-     */
+    // helper function for execute_bot: minimax algorithm for chess bot
     minimax(depth, is_black_player, alpha, beta, squares, RA_of_starts, RA_of_ends) {
         if (depth == 0)
             return this.evaluate_black(squares);
@@ -464,7 +294,6 @@ class Board extends React.Component {
 
         return best_value;
     }
-
     // Chess bot for black player
     execute_bot(depth, passed_in_squares) {
         let copy_squares = passed_in_squares.slice();
@@ -476,8 +305,8 @@ class Board extends React.Component {
             RA_of_starts.push(i);
             RA_of_ends.push(i);
         }
-        RA_of_starts = this.shuffle(RA_of_starts);
-        RA_of_ends = this.shuffle(RA_of_ends);
+        RA_of_starts = shuffle(RA_of_starts);
+        RA_of_ends = shuffle(RA_of_ends);
 
         // calculate which move is best
         let best_value = -9999;
@@ -514,9 +343,10 @@ class Board extends React.Component {
         }
 
         if (rand_end != 100) { // rand_end == 100 indicates that black is in checkmate/stalemate
-            copy_squares = this.clear_highlight(copy_squares);
+            copy_squares = clear_highlight(copy_squares);
             let final_squares = this.make_move(copy_squares, rand_start, rand_end);
-            final_squares = this.highlight_mate(final_squares, 'w');
+            final_squares = highlight_mate(final_squares, 'w',
+                this.checkmate(player, copy_squares), this.stalemate(player, copy_squares));
 
             // when a piece is captured, record it
             const copy_black_collection = this.state.pieces_collected_by_black.slice();
@@ -554,7 +384,7 @@ class Board extends React.Component {
 
             //can only pick a piece that is not a blank square
             if (copy_squares[i].player != null) {
-                copy_squares = this.clear_check_highlight(copy_squares, 'w');
+                copy_squares = clear_check_highlight(copy_squares, 'w');
                 copy_squares[i].highlight = 1; // highlight selected piece
 
                 // highlight legal moves
@@ -580,7 +410,7 @@ class Board extends React.Component {
             if (cannibalism == true && this.state.source != i) {
                 copy_squares[i].highlight = 1;
                 copy_squares[this.state.source].highlight = 0;
-                copy_squares = this.clear_possible_highlight(copy_squares);
+                copy_squares = clear_possible_highlight(copy_squares);
                 for (let j = 0; j < 64; j++) {
                     if (this.can_move_there(i, j, copy_squares)) {
                         copy_squares[j].possible = 1;
@@ -594,7 +424,7 @@ class Board extends React.Component {
                 if (!this.can_move_there(this.state.source, i, copy_squares)) {
                     // un-highlight selection if invalid move was attempted
                     copy_squares[this.state.source].highlight = 0;
-                    copy_squares = this.clear_possible_highlight(copy_squares);
+                    copy_squares = clear_possible_highlight(copy_squares);
                     // if user is in check, highlight king in red if user tries a move that doesn't get her
                     // out of check
                     if (i != this.state.source && this.in_check('w', copy_squares) == true) {
@@ -613,8 +443,8 @@ class Board extends React.Component {
                 }
 
                 // clear highlights
-                copy_squares = this.clear_highlight(copy_squares);
-                copy_squares = this.clear_possible_highlight(copy_squares);
+                copy_squares = clear_highlight(copy_squares);
+                copy_squares = clear_possible_highlight(copy_squares);
                 for (let j = 0; j < 64; j++) { // user has heeded warning
                     if (copy_squares[j].ascii == 'k') {
                         copy_squares[j].in_check = 0;
@@ -631,7 +461,8 @@ class Board extends React.Component {
                     copy_white_collection.push(<Collected value = {copy_squares[i]}/>);
                 }
 
-                copy_squares = this.highlight_mate(copy_squares, 'b');
+                copy_squares = highlight_mate(copy_squares, 'b',
+                    this.checkmate(player, copy_squares), this.stalemate(player, copy_squares));
 
                 this.setState( {
                     turn: (this.state.turn == 'w' ? 'b':'w'),
@@ -647,28 +478,6 @@ class Board extends React.Component {
                 return 'black made move';
             }
         }
-    }
-
-    // return the color of a square for the chess board
-    calc_squareColor(i, j) {
-        let square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
-            ? "white_square" : "black_square";
-        if (this.state.squares[(i*8) + j].highlight == 1) {
-            square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
-            ? "selected_white_square" : "selected_black_square";
-        }
-        if (this.state.squares[(i*8) + j].possible == 1) {
-            square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
-            ? "highlighted_white_square" : "highlighted_black_square";
-        }
-        if (this.state.squares[(i*8) + j].in_check == 1) {
-            square_color = "in_check_square";
-        }
-        if (this.state.squares[(i*8) + j].checked >= 1) {
-            square_color = (this.state.squares[(i*8) + j].checked == 1)
-            ? "checked_square":"stale_square";
-        }
-        return square_color;
     }
 
     // Render the page
@@ -710,7 +519,8 @@ class Board extends React.Component {
                     square_corner = "";
                 }
 
-                let square_color = this.calc_squareColor(i, j);
+                const copy_squares = this.state.squares;
+                let square_color = calc_squareColor(i, j, copy_squares);
                 squareRows.push(<Square
                     value = {this.state.squares[(i*8) + j]}
                     color = {square_color}
@@ -811,67 +621,7 @@ class Game extends React.Component {
     }
 }
 
-// ========================================
-
-// initialize the board
-function initializeBoard() {
-    const squares = Array(64).fill(null);
-    //black pawns
-    for (let i = 8; i < 16; i++) {
-        squares[i] = new Pawn('b');
-    }
-    // white pawns
-    for (let i = 8*6; i < 8*6+8; i++) {
-        squares[i] = new Pawn('w');
-    }
-    // black knights
-    squares[1] = new Knight('b');
-    squares[6] = new Knight('b');
-    // white knights
-    squares[56+1] = new Knight('w');
-    squares[56+6] = new Knight('w');
-    // black bishops
-    squares[2] = new Bishop('b');
-    squares[5] = new Bishop('b');
-    // white bishops
-    squares[56+2] = new Bishop('w');
-    squares[56+5] = new Bishop('w');
-    // black rooks
-    squares[0] = new Rook('b');
-    squares[7] = new Rook('b');
-    // white rooks
-    squares[56+0] = new Rook('w');
-    squares[56+7] = new Rook('w');
-    // black queen & king
-    squares[3] = new Queen('b');
-    squares[4] = new King('b');
-    // white queen & king
-    squares[56+3] = new Queen('w');
-    squares[56+4] = new King('w');
-
-    for (let i = 0; i < 64; i++) {
-        if (squares[i] == null)
-            squares[i] = new filler_piece(null);
-    }
-
-    return squares;
-}
-
-// return if value is even
-function isEven(value) {
-    return value % 2;
-}
-
-// return button for axes of the board
-function Label(props) {
-    return ( <button className = {"label"}> {props.value} </button> );
-}
-
-// helper function to help generate
-function Collected(props) {
-    return ( <button className = {"collected"}> {props.value.icon} </button> );
-}
-
+// Piece Classes ========================================
 class King {
     constructor(player) {
         this.player = player;
@@ -1113,6 +863,256 @@ class filler_piece {
     }
 }
 
+// Helper Function for Board Constructor =================
+// initialize the chess board
+function initializeBoard() {
+    const squares = Array(64).fill(null);
+    //black pawns
+    for (let i = 8; i < 16; i++) {
+        squares[i] = new Pawn('b');
+    }
+    // white pawns
+    for (let i = 8*6; i < 8*6+8; i++) {
+        squares[i] = new Pawn('w');
+    }
+    // black knights
+    squares[1] = new Knight('b');
+    squares[6] = new Knight('b');
+    // white knights
+    squares[56+1] = new Knight('w');
+    squares[56+6] = new Knight('w');
+    // black bishops
+    squares[2] = new Bishop('b');
+    squares[5] = new Bishop('b');
+    // white bishops
+    squares[56+2] = new Bishop('w');
+    squares[56+5] = new Bishop('w');
+    // black rooks
+    squares[0] = new Rook('b');
+    squares[7] = new Rook('b');
+    // white rooks
+    squares[56+0] = new Rook('w');
+    squares[56+7] = new Rook('w');
+    // black queen & king
+    squares[3] = new Queen('b');
+    squares[4] = new King('b');
+    // white queen & king
+    squares[56+3] = new Queen('w');
+    squares[56+4] = new King('w');
+
+    for (let i = 0; i < 64; i++) {
+        if (squares[i] == null)
+            squares[i] = new filler_piece(null);
+    }
+
+    return squares;
+}
+
+// Helper Functions for Chess Bot ========================
+// Fisher-Yates shuffle
+function shuffle(passed_in_array) {
+    const array = passed_in_array.slice();
+    for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
+        [array[i], array[j]] = [array[j], array[i]]; // swap elements
+    }
+    return array;
+}
+// function to reverse an array
+function reverseArray(array) {
+    return array.slice().reverse();
+}
+// return value of a piece
+function get_piece_value(piece, position) {
+    let pieceValue = 0;
+    if (piece == null || piece.ascii == null)
+        return 0;
+
+    // these arrays help adjust the piece's value
+    // depending on where the piece is on the board
+    var pawnEvalWhite = [
+        [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],
+        [5.0,  5.0,  5.0,  5.0,  5.0,  5.0,  5.0,  5.0],
+        [1.0,  1.0,  2.0,  3.0,  3.0,  2.0,  1.0,  1.0],
+        [0.5,  0.5,  1.0,  2.5,  2.5,  1.0,  0.5,  0.5],
+        [0.0,  0.0,  0.0,  2.0,  2.0,  0.0,  0.0,  0.0],
+        [0.5, -0.5, -1.0,  0.0,  0.0, -1.0, -0.5,  0.5],
+        [0.5,  1.0, 1.0,  -2.0, -2.0,  1.0,  1.0,  0.5],
+        [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0]
+    ];
+    var pawnEvalBlack = reverseArray(pawnEvalWhite);
+
+    var knightEval = [
+        [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0],
+        [-4.0, -2.0,  0.0,  0.0,  0.0,  0.0, -2.0, -4.0],
+        [-3.0,  0.0,  1.0,  1.5,  1.5,  1.0,  0.0, -3.0],
+        [-3.0,  0.5,  1.5,  2.0,  2.0,  1.5,  0.5, -3.0],
+        [-3.0,  0.0,  1.5,  2.0,  2.0,  1.5,  0.0, -3.0],
+        [-3.0,  0.5,  1.0,  1.5,  1.5,  1.0,  0.5, -3.0],
+        [-4.0, -2.0,  0.0,  0.5,  0.5,  0.0, -2.0, -4.0],
+        [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0]
+    ];
+
+    var bishopEvalWhite = [
+        [ -2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0],
+        [ -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -1.0],
+        [ -1.0,  0.0,  0.5,  1.0,  1.0,  0.5,  0.0, -1.0],
+        [ -1.0,  0.5,  0.5,  1.0,  1.0,  0.5,  0.5, -1.0],
+        [ -1.0,  0.0,  1.0,  1.0,  1.0,  1.0,  0.0, -1.0],
+        [ -1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, -1.0],
+        [ -1.0,  0.5,  0.0,  0.0,  0.0,  0.0,  0.5, -1.0],
+        [ -2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0]
+    ];
+    var bishopEvalBlack = reverseArray(bishopEvalWhite);
+
+    var rookEvalWhite = [
+        [  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],
+        [  0.5,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [  0.0,   0.0, 0.0,  0.5,  0.5,  0.0,  0.0,  0.0]
+    ];
+    var rookEvalBlack = reverseArray(rookEvalWhite);
+
+    var evalQueen = [
+        [ -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0],
+        [ -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -1.0],
+        [ -1.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0],
+        [ -0.5,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5],
+        [  0.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5],
+        [ -1.0,  0.5,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0],
+        [ -1.0,  0.0,  0.5,  0.0,  0.0,  0.0,  0.0, -1.0],
+        [ -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0]
+    ];
+
+    var kingEvalWhite = [
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -2.0, -3.0, -3.0, -4.0, -4.0, -3.0, -3.0, -2.0],
+        [ -1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -1.0],
+        [  2.0,  2.0,  0.0,  0.0,  0.0,  0.0,  2.0,  2.0],
+        [  2.0,  3.0,  1.0,  0.0,  0.0,  1.0,  3.0,  2.0]
+    ];
+    var kingEvalBlack = reverseArray(kingEvalWhite);
+
+    let x = Math.floor(position / 8);
+    let y = position % 8;
+
+    switch (piece.ascii.toLowerCase()) {
+        case 'p':
+            pieceValue = 10 + ( piece.ascii == 'p' ? pawnEvalWhite[y][x] : pawnEvalBlack[y][x] );
+            break;
+        case 'r':
+            pieceValue = 50 + ( piece.ascii == 'r' ? rookEvalWhite[y][x] : rookEvalBlack[y][x] );
+            break;
+        case 'n':
+            pieceValue = 30 + knightEval[y][x];
+            break;
+        case 'b':
+            pieceValue = 30 + ( piece.ascii == 'b' ? bishopEvalWhite[y][x] : bishopEvalBlack[y][x] );
+            break;
+        case 'q':
+            pieceValue = 90 + evalQueen[y][x];
+            break;
+        case 'k':
+            pieceValue = 900 + ( piece.ascii == 'k' ? kingEvalWhite[y][x] : kingEvalBlack[y][x] );
+            break;
+        default:
+            pieceValue = 0;
+            break;
+    }
+    return piece.player == 'b' ? pieceValue : -pieceValue;
+}
+
+// Helper Functions for Render ===========================
+// return the color of a square for the chess board
+function calc_squareColor(i, j, squares) {
+    let square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
+        ? "white_square" : "black_square";
+    if (squares[(i*8) + j].highlight == 1) {
+        square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
+        ? "selected_white_square" : "selected_black_square";
+    }
+    if (squares[(i*8) + j].possible == 1) {
+        square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
+        ? "highlighted_white_square" : "highlighted_black_square";
+    }
+    if (squares[(i*8) + j].in_check == 1) {
+        square_color = "in_check_square";
+    }
+    if (squares[(i*8) + j].checked >= 1) {
+        square_color = (this.state.squares[(i*8) + j].checked == 1)
+        ? "checked_square":"stale_square";
+    }
+    return square_color;
+}
+// return labels for axes of the board
+function Label(props) {
+    return ( <button className = {"label"}> {props.value} </button> );
+}
+// helper function to help generate arrays of pieces captured by a player
+function Collected(props) {
+    return ( <button className = {"collected"}> {props.value.icon} </button> );
+}
+
+// Helper Functions to Handle Square Highlighting ========
+// highlight king if in checkmate/stalemate
+function highlight_mate(squares, player, check_mated, stale_mated) {
+    const copy_squares = squares.slice();
+    if (check_mated || stale_mated) {
+        for (let j = 0; j < 64; j++) {
+            if (copy_squares[j].ascii == (player == 'b' ? 'K':'k')) {
+                copy_squares[j].checked = (check_mated ? 1:2);
+                break;
+            }
+        }
+    }
+    return copy_squares;
+}
+// clear highlights for squares that are selected
+function clear_highlight(squares) {
+    const copy_squares = squares.slice();
+    for (let j = 0; j < 64; j++) {
+        if (copy_squares[j].highlight == 1) {
+            copy_squares[j].highlight = 0;
+        }
+    }
+    return copy_squares;
+}
+// clear highlights for possible destination squares
+function clear_possible_highlight(squares) {
+    const copy_squares = squares.slice();
+    for (let j = 0; j < 64; j++) {
+        if (copy_squares[j].possible == 1) {
+            copy_squares[j].possible = 0;
+        }
+    }
+    return copy_squares;
+}
+// clear the red higlight for checked king
+function clear_check_highlight(squares, player) {
+    const copy_squares = squares.slice();
+    for (let j = 0; j < 64; j++) {
+        if (copy_squares[j].ascii == (player == 'w' ? 'k':'K')) {
+            copy_squares[j].in_check = 0; // user has heeded warning
+            break;
+        }
+    }
+    return copy_squares;
+}
+
+// Miscellaneous Functions ===============================
+// return if value is even
+function isEven(value) {
+    return value % 2;
+}
+
+// =======================================================
 ReactDOM.render(
     <Game />,
     document.getElementById('root')
