@@ -345,8 +345,8 @@ class Board extends React.Component {
         if (rand_end != 100) { // rand_end == 100 indicates that black is in checkmate/stalemate
             copy_squares = clear_highlight(copy_squares);
             let final_squares = this.make_move(copy_squares, rand_start, rand_end);
-            final_squares = highlight_mate(final_squares, 'w',
-                this.checkmate(player, copy_squares), this.stalemate(player, copy_squares));
+            copy_squares = highlight_mate( 'w', final_squares,
+                (this.checkmate('w', final_squares)), (this.checkmate('w', final_squares)) )
 
             // when a piece is captured, record it
             const copy_black_collection = this.state.pieces_collected_by_black.slice();
@@ -454,15 +454,14 @@ class Board extends React.Component {
 
                 // make the move
                 copy_squares = this.make_move(copy_squares, this.state.source, i);
+                copy_squares = highlight_mate( 'b', copy_squares,
+                    (this.checkmate('b', copy_squares)), (this.checkmate('b', copy_squares)) )
 
                 // when a piece is captured, record it
                 const copy_white_collection = this.state.pieces_collected_by_white.slice();
                 if (copy_squares[this.state.source].player == this.state.turn && copy_squares[i].ascii != null) {
                     copy_white_collection.push(<Collected value = {copy_squares[i]}/>);
                 }
-
-                copy_squares = highlight_mate(copy_squares, 'b',
-                    this.checkmate(player, copy_squares), this.stalemate(player, copy_squares));
 
                 this.setState( {
                     turn: (this.state.turn == 'w' ? 'b':'w'),
@@ -519,7 +518,7 @@ class Board extends React.Component {
                     square_corner = "";
                 }
 
-                const copy_squares = this.state.squares;
+                const copy_squares = this.state.squares.slice();
                 let square_color = calc_squareColor(i, j, copy_squares);
                 squareRows.push(<Square
                     value = {this.state.squares[(i*8) + j]}
@@ -1042,12 +1041,14 @@ function calc_squareColor(i, j, squares) {
         square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
         ? "highlighted_white_square" : "highlighted_black_square";
     }
-    if (squares[(i*8) + j].in_check == 1) {
-        square_color = "in_check_square";
-    }
-    if (squares[(i*8) + j].checked >= 1) {
-        square_color = (this.state.squares[(i*8) + j].checked == 1)
-        ? "checked_square":"stale_square";
+    if (squares[(i*8) + j].ascii != null && squares[(i*8) + j].ascii.toLowerCase() == 'k') {
+        if (squares[(i*8) + j].in_check == 1) {
+            square_color = "in_check_square";
+        }
+        if (squares[(i*8) + j].checked >= 1) {
+            square_color = (squares[(i*8) + j].checked == 1)
+            ? "checked_square":"stale_square";
+        }
     }
     return square_color;
 }
@@ -1062,17 +1063,17 @@ function Collected(props) {
 
 // Helper Functions to Handle Square Highlighting ========
 // highlight king if in checkmate/stalemate
-function highlight_mate(squares, player, check_mated, stale_mated) {
-    const copy_squares = squares.slice();
-    if (check_mated || stale_mated) {
-        for (let j = 0; j < 64; j++) {
-            if (copy_squares[j].ascii == (player == 'b' ? 'K':'k')) {
-                copy_squares[j].checked = (check_mated ? 1:2);
-                break;
-            }
-        }
-    }
-    return copy_squares;
+function highlight_mate(player, squares, check_mated, stale_mated) {
+   const copy_squares = squares.slice();
+   if (check_mated || stale_mated) {
+       for (let j = 0; j < 64; j++) {
+           if (copy_squares[j].ascii == (player == 'w' ? 'k':'K')) {
+               copy_squares[j].checked = (check_mated == true ? 1:2);
+               break;
+           }
+       }
+   }
+   return copy_squares;
 }
 // clear highlights for squares that are selected
 function clear_highlight(squares) {
