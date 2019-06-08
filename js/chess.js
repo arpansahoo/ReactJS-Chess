@@ -343,17 +343,16 @@ class Board extends React.Component {
         }
 
         if (rand_end != 100) { // rand_end == 100 indicates that black is in checkmate/stalemate
+            // when a piece is captured, record it
+            const copy_black_collection = this.state.pieces_collected_by_black.slice();
+            if (copy_squares[rand_end].ascii != null) {
+                copy_black_collection.push(<Collected value = {copy_squares[rand_end]}/>);
+            }
+
             copy_squares = clear_highlight(copy_squares);
             let final_squares = this.make_move(copy_squares, rand_start, rand_end);
             copy_squares = highlight_mate( 'w', final_squares,
                 (this.checkmate('w', final_squares)), (this.checkmate('w', final_squares)) )
-
-            // when a piece is captured, record it
-            const copy_black_collection = this.state.pieces_collected_by_black.slice();
-            if (copy_squares[rand_start] != null && copy_squares[rand_start].player == 'b'
-            && copy_squares[rand_end] != null && copy_squares[rand_end].ascii != null) {
-                copy_black_collection.push(<Collected value = {copy_squares[rand_end]}/>);
-            }
 
             this.setState( {
                 turn: 'w',
@@ -452,16 +451,16 @@ class Board extends React.Component {
                     }
                 }
 
+                // when a piece is captured, record it
+                const copy_white_collection = this.state.pieces_collected_by_white.slice();
+                if (copy_squares[i].ascii != null) {
+                    copy_white_collection.push(<Collected value = {copy_squares[i]}/>);
+                }
+
                 // make the move
                 copy_squares = this.make_move(copy_squares, this.state.source, i);
                 copy_squares = highlight_mate( 'b', copy_squares,
                     (this.checkmate('b', copy_squares)), (this.checkmate('b', copy_squares)) )
-
-                // when a piece is captured, record it
-                const copy_white_collection = this.state.pieces_collected_by_white.slice();
-                if (copy_squares[this.state.source].player == this.state.turn && copy_squares[i].ascii != null) {
-                    copy_white_collection.push(<Collected value = {copy_squares[i]}/>);
-                }
 
                 this.setState( {
                     turn: (this.state.turn == 'w' ? 'b':'w'),
