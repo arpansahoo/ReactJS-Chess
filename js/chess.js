@@ -37,7 +37,7 @@ class Board extends React.Component {
         } );
     }
 
-    // clear highlights
+    // clear the red higlight for checked king
     clear_check_highlight(squares, player) {
         const copy_squares = squares.slice();
         for (let j = 0; j < 64; j++) {
@@ -48,7 +48,7 @@ class Board extends React.Component {
         }
         return copy_squares;
     }
-    // clear highlights
+    // clear highlights for possible destination squares
     clear_possible_highlight(squares) {
         const copy_squares = squares.slice();
         for (let j = 0; j < 64; j++) {
@@ -58,7 +58,7 @@ class Board extends React.Component {
         }
         return copy_squares;
     }
-    // clear highlights
+    // clear highlights for squares that are selected
     clear_highlight(squares) {
         const copy_squares = squares.slice();
         for (let j = 0; j < 64; j++) {
@@ -232,9 +232,12 @@ class Board extends React.Component {
             return false;
         }
         var player = squares[start].player;
+        // player cannot capture her own piece
+        // and piece must be able to physically move from start to end
         if (player == squares[end].player || squares[start].can_move(start, end) == false) {
             return false;
         }
+        // player cannot make an invalid move
         if (this.invalid_move(start, end, squares) == true) {
             return false;
         }
@@ -260,6 +263,8 @@ class Board extends React.Component {
         if (this.in_check(player, squares)) {
             return false;
         }
+        // if there is even only 1 way to move her piece,
+        // the player is not in stalemate
         for (let i = 0; i < 64; i++) {
             if (squares[i].player == player) {
                 for (let j = 0; j < 64; j++) {
@@ -276,6 +281,8 @@ class Board extends React.Component {
         if (!this.in_check(player, squares) || this.stalemate(player, squares)) {
             return false;
         }
+        // if there is even only 1 way to move her piece,
+        // the player is not in checkmate
         for (let i = 0; i < 64; i++) {
             if (squares[i].player == player) {
                 for (let j = 0; j < 64; j++) {
@@ -431,7 +438,7 @@ class Board extends React.Component {
         }
         return total_eval;
     }
-    //minimax algorithm for chess bot
+    //minimax algorithm for chess bot - recursive method to look a few moves ahead
     minimax(depth, is_black_player, alpha, beta, squares, RA_of_starts, RA_of_ends) {
         if (depth == 0) {
             return this.evaluate_black(squares);
@@ -450,18 +457,9 @@ class Board extends React.Component {
                     && this.can_move_there(start, RA_of_ends[j], squares) == true) {
 
                         let end = RA_of_ends[j];
-                        const test_squares = squares.slice();
                         // make the move on test board
-                        test_squares[end] = test_squares[start];
-                        test_squares[start] = new filler_piece(null);
-
-                        // pawn promotion on test board
-                        if (test_squares[end].ascii == 'P' && (end >= 56 && end <= 63)) {
-                            test_squares[end] = new Queen('b');
-                        }
-                        if (test_squares[end].ascii == 'p' && (end >= 0 && end <= 7)) {
-                            test_squares[end] = new Queen('b');
-                        }
+                        let test_squares = squares.slice();
+                        test_squares = this.make_move(test_squares, start, end);
 
                         // black player maximizes value, white player minimizes value
                         let value = this.minimax(depth - 1, !is_black_player, alpha, beta,
@@ -470,7 +468,7 @@ class Board extends React.Component {
                             if (value > best_value) {
                                 best_value = value;
                             }
-                            alpha = Math.max(alpha, value);
+                            alpha = Math.max(alpha, value); //alpha-beta pruning
                             if (beta <= alpha) {
                                 return best_value;
                             }
@@ -478,7 +476,7 @@ class Board extends React.Component {
                             if (value < best_value) {
                                 best_value = value;
                             }
-                            beta = Math.min(beta, value);
+                            beta = Math.min(beta, value); //alpha-beta pruning
                             if (beta <= alpha) {
                                 return best_value;
                             }
@@ -494,11 +492,10 @@ class Board extends React.Component {
 
     // Chess bot for black player
     execute_bot(depth, passed_in_squares) {
+        //alert("bot is running...");
         let copy_squares = passed_in_squares.slice();
-
         let rand_start = 100;
         let rand_end = 100;
-
         let RA_of_starts = [];
         let RA_of_ends = [];
         for (let i = 0; i < 64; i++) {
@@ -552,11 +549,8 @@ class Board extends React.Component {
                 );
             }
 
-            // clear any highlights from last move after new move is made
             copy_squares = this.clear_highlight(copy_squares);
-
             let final_squares = this.make_move(copy_squares, rand_start, rand_end);
-
             final_squares = this.highlight_mate(final_squares, 'w');
 
             this.setState( {
@@ -572,6 +566,7 @@ class Board extends React.Component {
     // handle user action of clicking square on board
     handleClick(i) {
         let copy_squares = this.state.squares.slice();
+        const orig_squares = this.state.squares.slice();
 
         let check_mated = this.checkmate('w', copy_squares) || this.checkmate('b', copy_squares);
         let stale_mated = this.stalemate('w', copy_squares) && this.state.turn == 'w'
@@ -611,7 +606,6 @@ class Board extends React.Component {
         // second click (to move piece from the source to destination)
         if (this.state.source > -1) {
             var cannibalism = (copy_squares[i].player == this.state.turn);
-
             /* if user is trying to select one of her other pieces,
              * change highlight to the new selection, but do not move any pieces
              */
@@ -634,7 +628,6 @@ class Board extends React.Component {
                 if (i != this.state.source
                     && copy_squares[this.state.source].can_move(this.state.source, i) == true
                     && this.invalid_move(this.state.source, i, this.state.squares) == false) {
-
                         copy_squares = this.clear_highlight(copy_squares);
 
                         // if user is in check, highlight king in red if user tries a move that doesn't get
@@ -655,6 +648,7 @@ class Board extends React.Component {
                             copy_white_collection.push(<Collected value = {copy_squares[i]}/>);
                         }
 
+                        // make the move
                         copy_squares = this.make_move(copy_squares, this.state.source, i);
 
                         // not allowed to put yourself in check
@@ -666,9 +660,7 @@ class Board extends React.Component {
                                 }
                             }
                             copy_squares = this.clear_possible_highlight(copy_squares);
-
                             copy_squares = this.highlight_mate(copy_squares, 'b');
-
                             this.setState( {
                                 turn: (this.state.turn == 'w' ? 'b':'w'),
                                 source: -1, // set source back to non-clicked
@@ -676,17 +668,17 @@ class Board extends React.Component {
                                 pieces_collected_by_white: copy_white_collection,
                             });
 
+                            // chess bot for black player
                             let search_depth = 3;
-                            this.execute_bot(search_depth, copy_squares);
+                            setTimeout(() => {
+                                this.execute_bot(search_depth, copy_squares);
+                            }, 700);
                             return 'black made move';
 
                         } else {
-                            // clear highlights
-                            let new_copy_squares = this.state.squares.slice();
-                            new_copy_squares[this.state.source].highlight = 0;
-                            new_copy_squares = this.clear_possible_highlight(new_copy_squares);
+                            alert('damn')
                             this.setState( {
-                                squares: new_copy_squares,
+                                squares: orig_squares,
                                 source: -1, // set source back to non-clicked
                             });
                         }
@@ -715,14 +707,29 @@ class Board extends React.Component {
 
     }
 
-/*
-    // Chess bot for black player
-    let search_depth = 3;
-    this.execute_bot(search_depth, copy_squares);
-    return 'black made move';
-*/
     // Render the page
     render() {
+        const row_nums = [];
+        for (let i = 8; i > 0; i--) {
+            row_nums.push(<Label value = {i} />);
+        }
+
+        const col_nums = [];
+        for (let i = 1; i < 9; i++) {
+            let letter;
+            switch (i) {
+                case 1: letter = 'A'; break;
+                case 2: letter = 'B'; break;
+                case 3: letter = 'C'; break;
+                case 4: letter = 'D'; break;
+                case 5: letter = 'E'; break;
+                case 6: letter = 'F'; break;
+                case 7: letter = 'G'; break;
+                case 8: letter = 'H'; break;
+            }
+            col_nums.push(<Label value = {letter} />);
+        }
+
         const board = [];
         for (let i = 0; i < 8; i++) {
             const squareRows = [];
@@ -850,27 +857,6 @@ class Board extends React.Component {
                 }
             }
             board.push(<div>{squareRows}</div>)
-        }
-
-        const row_nums = [];
-        for (let i = 8; i > 0; i--) {
-            row_nums.push(<Label value = {i} />);
-        }
-
-        const col_nums = [];
-        for (let i = 1; i < 9; i++) {
-            let letter;
-            switch (i) {
-                case 1: letter = 'A'; break;
-                case 2: letter = 'B'; break;
-                case 3: letter = 'C'; break;
-                case 4: letter = 'D'; break;
-                case 5: letter = 'E'; break;
-                case 6: letter = 'F'; break;
-                case 7: letter = 'G'; break;
-                case 8: letter = 'H'; break;
-            }
-            col_nums.push(<Label value = {letter} />);
         }
 
         return (
