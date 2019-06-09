@@ -21,6 +21,9 @@ class Board extends React.Component {
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
+            first_pos: null,
+            second_pos: null,
+            repetition: 0,
             running: 0,
             pieces_collected_by_white: [],
             pieces_collected_by_black: [],
@@ -33,6 +36,9 @@ class Board extends React.Component {
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
+            first_pos: null,
+            second_pos: null,
+            repetition: 0,
             running: 0,
             pieces_collected_by_white: [],
             pieces_collected_by_black: [],
@@ -192,7 +198,7 @@ class Board extends React.Component {
         // traverse through the board and determine
         // any of the opponent's pieces can legally take the player's king
         for (let i = 0; i < 64; i++) {
-            if (copy_squares[i].player != null && copy_squares[i].player != player) {
+            if (copy_squares[i].player != player) {
                 if (copy_squares[i].can_move(i, position_of_king) == true
                 && this.invalid_move(i, position_of_king, squares) == false) {
                     return true;
@@ -253,8 +259,7 @@ class Board extends React.Component {
         // iterate through the possible start positions
         for (let i = 0; i < 64; i++) {
             let start = RA_of_starts[i];
-            let isPlayerPiece = squares[start] != null && squares[start].ascii != null
-                && squares[start].player == (is_black_player ? 'b':'w');
+            let isPlayerPiece = squares[start].ascii != null && squares[start].player == (is_black_player ? 'b':'w');
 
             // start should be the position of a piece owned by the player
             if (isPlayerPiece) {
@@ -266,7 +271,7 @@ class Board extends React.Component {
                  */
                 for (let j = 0; j < 64; j++) {
                     let end = RA_of_ends[j];
-                    if (squares[end] != null && this.can_move_there(start, end, squares) == true) {
+                    if (this.can_move_there(start, end, squares) == true) {
                         // make the move on test board
                         let test_squares = squares.slice();
                         test_squares = this.make_move(test_squares, start, end);
@@ -308,55 +313,88 @@ class Board extends React.Component {
         RA_of_starts = shuffle(RA_of_starts);
         RA_of_ends = shuffle(RA_of_ends);
 
-        // calculate which move is best
-        let best_value = -9999;
-        // iterate through the start positions
+        // create array of possible moves
+        let moves = [];
         for (let i = 0; i < 64; i++) {
             let start = RA_of_starts[i];
-            let isBlackPiece = copy_squares[start] != null && copy_squares[start].ascii != null
-                && copy_squares[start].player == 'b';
-            // start should be the position of a black piece
+            let isBlackPiece = copy_squares[start].ascii != null && copy_squares[start].player == 'b';
             if (isBlackPiece) {
-                /* iterate through the possible end positions for each possible start position
-                 * and choose the movement from start to end that results in the best position for black
-                 * in terms of value calculated by evaluate_black; minimax algo lets bot look ahead a few moves
-                 * and thereby pick the move that results in the best value in the long run
-                 */
                 for (let j = 0; j < 64; j++) {
                     let end = RA_of_ends[j];
-                    if (copy_squares[end] != null && this.can_move_there(start, end, copy_squares) == true) {
-                        let test_squares = passed_in_squares.slice();
-                        test_squares = this.make_move(test_squares, start, end);
-
-                        // board evaluation using mini_max algorithm
-                        // by looking at future turns
-                        let board_eval = this.minimax(depth - 1, false, -1000, 1000, test_squares,
-                            RA_of_starts, RA_of_ends);
-                        if (board_eval >= best_value) {
-                            best_value = board_eval;
-                            rand_start = start;
-                            rand_end = end;
-                        }
+                    if (this.can_move_there(start, end, copy_squares) == true) {
+                        moves.push(start);
+                        moves.push(end);
                     }
                 }
             }
         }
 
+        if (moves.length == 0) { // black has no possible moves
+            return 'black is mated';
+        }
+
+        let best_value = -9999;
+        /* iterate through the possible movements and choose the movement from start to end that results in the best
+         * position for black in terms of value calculated by evaluate_black; minimax algo lets bot look ahead a few
+         * moves and thereby pick the move that results in the best value in the long run
+         */
+        for (let i = 0; i < moves.length; i += 2) {
+            let start = moves[i];
+            let end = moves[i + 1];
+            // 3-fold repetiton by bot NOT ALLOWED if there are other move options
+            if (moves.length > 2 && this.state.repetition >= 2
+            && start == this.state.second_pos && end == this.state.first_pos) {
+                this.setState( {
+                    repetition: 0,
+                });
+                console.log("3fold rep countered.")
+            } else {
+                let test_squares = passed_in_squares.slice();
+                test_squares = this.make_move(test_squares, start, end);
+
+                // board evaluation using mini_max algorithm by looking at future turns
+                let board_eval = this.minimax(depth - 1, false, -1000, 1000, test_squares,
+                    RA_of_starts, RA_of_ends);
+                if (board_eval >= best_value) {
+                    best_value = board_eval;
+                    rand_start = start;
+                    rand_end = end;
+                }
+            }
+        }
+
         if (rand_end != 100) { // rand_end == 100 indicates that black is in checkmate/stalemate
+            // increment this.state.repetition if black keeps moving a piece back and forth consecutively
+            if (rand_start == this.state.second_pos && rand_end == this.state.first_pos) {
+                let reps = this.state.repetition + 1;
+                this.setState( {
+                    repetition: reps,
+                });
+            } else {
+                this.setState( {
+                    repetition: 0,
+                });
+            }
+
             // when a piece is captured, record it
             const copy_black_collection = this.state.pieces_collected_by_black.slice();
             if (copy_squares[rand_end].ascii != null) {
-                copy_black_collection.push(<Collected value = {copy_squares[rand_end]}/>);
+                copy_black_collection.push(<Collected
+                    key={copy_squares[rand_end].ascii}
+                    value = {copy_squares[rand_end]}/>
+                );
             }
 
             copy_squares = clear_highlight(copy_squares);
             let final_squares = this.make_move(copy_squares, rand_start, rand_end);
             copy_squares = highlight_mate( 'w', final_squares,
-                (this.checkmate('w', final_squares)), (this.checkmate('w', final_squares)) )
+                (this.checkmate('w', final_squares)), (this.stalemate('w', final_squares)) )
 
             this.setState( {
                 turn: 'w',
                 source: -1, // set source back to non-clicked
+                first_pos: rand_start,
+                second_pos: rand_end,
                 running: 0,
                 squares: final_squares,
                 pieces_collected_by_black: copy_black_collection,
@@ -369,8 +407,8 @@ class Board extends React.Component {
         let copy_squares = this.state.squares.slice();
 
         let check_mated = this.checkmate('w', copy_squares) || this.checkmate('b', copy_squares);
-        let stale_mated = this.stalemate('w', copy_squares) && this.state.turn == 'w'
-        || this.stalemate('b', copy_squares) && this.state.turn == 'b';
+        let stale_mated = (this.stalemate('w', copy_squares) && this.state.turn == 'w')
+        || (this.stalemate('b', copy_squares) && this.state.turn == 'b');
 
         if (check_mated || stale_mated)
             return 'game-over';
@@ -460,7 +498,7 @@ class Board extends React.Component {
                 // make the move
                 copy_squares = this.make_move(copy_squares, this.state.source, i);
                 copy_squares = highlight_mate( 'b', copy_squares,
-                    (this.checkmate('b', copy_squares)), (this.checkmate('b', copy_squares)) )
+                    (this.checkmate('b', copy_squares)), (this.stalemate('b', copy_squares)) )
 
                 this.setState( {
                     turn: (this.state.turn == 'w' ? 'b':'w'),
@@ -482,7 +520,7 @@ class Board extends React.Component {
     render() {
         const row_nums = [];
         for (let i = 8; i > 0; i--) {
-            row_nums.push(<Label value = {i} />);
+            row_nums.push(<Label key={i} value = {i} />);
         }
         const col_nums = [];
         for (let i = 1; i < 9; i++) {
@@ -497,7 +535,7 @@ class Board extends React.Component {
                 case 7: letter = 'G'; break;
                 case 8: letter = 'H'; break;
             }
-            col_nums.push(<Label value = {letter} />);
+            col_nums.push(<Label key={letter} value = {letter} />);
         }
 
         const board = [];
@@ -519,14 +557,14 @@ class Board extends React.Component {
 
                 const copy_squares = this.state.squares.slice();
                 let square_color = calc_squareColor(i, j, copy_squares);
-                squareRows.push(<Square
+                squareRows.push(<Square key={i*8+j}
                     value = {this.state.squares[(i*8) + j]}
                     color = {square_color}
                     corner = {square_corner}
                     onClick = {() => this.handleClick((i*8) + j)} />
                 );
             }
-            board.push(<div>{squareRows}</div>)
+            board.push(<div key={i}>{squareRows}</div>)
         }
 
         return (
@@ -615,7 +653,7 @@ class Board extends React.Component {
 
 class Game extends React.Component {
     render() {
-        return ( <div className="game"> <Board /> </div> );
+        return <Board />;
     }
 }
 
@@ -923,7 +961,7 @@ function reverseArray(array) {
 // return value of a piece
 function get_piece_value(piece, position) {
     let pieceValue = 0;
-    if (piece == null || piece.ascii == null)
+    if (piece.ascii == null)
         return 0;
 
     // these arrays help adjust the piece's value
