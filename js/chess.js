@@ -329,10 +329,6 @@ class Board extends React.Component {
             }
         }
 
-        if (moves.length == 0) { // black has no possible moves
-            return 'black is mated';
-        }
-
         let best_value = -9999;
         /* iterate through the possible movements and choose the movement from start to end that results in the best
          * position for black in terms of value calculated by evaluate_black; minimax algo lets bot look ahead a few
@@ -347,7 +343,6 @@ class Board extends React.Component {
                 this.setState( {
                     repetition: 0,
                 });
-                console.log("3fold rep countered.")
             } else {
                 let test_squares = passed_in_squares.slice();
                 test_squares = this.make_move(test_squares, start, end);
@@ -940,7 +935,6 @@ function initializeBoard() {
         if (squares[i] == null)
             squares[i] = new filler_piece(null);
     }
-
     return squares;
 }
 
