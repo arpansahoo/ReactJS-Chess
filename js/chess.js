@@ -30,6 +30,7 @@ class Board extends React.Component {
             right_black_rook_has_moved: 0,
             left_white_rook_has_moved: 0,
             right_white_rook_has_moved: 0,
+            passant_pos: 65,
             bot_running: 0,
             pieces_collected_by_white: [],
             pieces_collected_by_black: [],
@@ -51,6 +52,7 @@ class Board extends React.Component {
             right_black_rook_has_moved: 0,
             left_white_rook_has_moved: 0,
             right_white_rook_has_moved: 0,
+            passant_pos: 65,
             bot_running: 0,
             pieces_collected_by_white: [],
             pieces_collected_by_black: [],
@@ -58,32 +60,33 @@ class Board extends React.Component {
     }
 
     // make a move
-    make_move(squares, start, end) {
+    make_move(squares, start, end, passant_pos) {
         const copy_squares = squares.slice();
         // castling
-        if (copy_squares[start].ascii == 'k' && Math.abs(end - start) == 2) {
-            if (end == 62) {
-                copy_squares[61] = copy_squares[63];
-                copy_squares[61].highlight = 1;
-                copy_squares[63] = new filler_piece(null);
-                copy_squares[63].highlight = 1;
-            } else if (end == 58) {
-                copy_squares[59] = copy_squares[56];
-                copy_squares[59].highlight = 1;
-                copy_squares[56] = new filler_piece(null);
-                copy_squares[56].highlight = 1;
+        var isKing = copy_squares[start].ascii == 'k' || copy_squares[start].ascii == 'K';
+        if (isKing && Math.abs(end - start) == 2) {
+            if (end == (copy_squares[start].ascii == 'k' ? 62:6)) {
+                copy_squares[end - 1] = copy_squares[end + 1];
+                copy_squares[end - 1].highlight = 1;
+                copy_squares[end + 1] = new filler_piece(null);
+                copy_squares[end + 1].highlight = 1;
+            } else if (end == (copy_squares[start].ascii == 'k' ? 58:2)) {
+                copy_squares[end + 1] = copy_squares[end - 2];
+                copy_squares[end + 1].highlight = 1;
+                copy_squares[end - 2] = new filler_piece(null);
+                copy_squares[end - 2].highlight = 1;
             }
-        } else if (copy_squares[start].ascii == 'K' && Math.abs(end - start) == 2) {
-            if (end == 6) {
-                copy_squares[5] = copy_squares[7];
-                copy_squares[5].highlight = 1;
-                copy_squares[7] = new filler_piece(null);
-                copy_squares[7].highlight = 1;
-            } else if (end == 2) {
-                copy_squares[3] = copy_squares[0];
-                copy_squares[3].highlight = 1;
-                copy_squares[0] = new filler_piece(null);
-                copy_squares[0].highlight = 1;
+        }
+
+        // en passant
+        var passant = (passant_pos == null ? this.state.passant_pos:passant_pos);
+        if (copy_squares[start].ascii.toLowerCase() == 'p') {
+            if (end - start == -7 || end - start == 9) { // white going up to the right
+                if (start + 1 == passant)
+                    copy_squares[start + 1] = new filler_piece(null);
+            } else if (end - start == -9 || end - start == 7) { // white going up to the left
+                if (start - 1 == passant)
+                    copy_squares[start - 1] = new filler_piece(null);
             }
         }
 
@@ -111,11 +114,9 @@ class Board extends React.Component {
         const copy_squares = squares.slice();
         var player = copy_squares[start].player;
         var delta_pos = end - start;
-        var king = copy_squares[start];
-        var rook = (delta_pos == 2 ? copy_squares[end + 1]:copy_squares[end - 2]);
         if (start != (player == 'w' ? 60:4))
             return false;
-        if (rook.ascii != (player == 'w' ? 'r':'R'))
+        if ( (delta_pos == 2 ? copy_squares[end + 1].ascii:copy_squares[end - 2].ascii) != (player == 'w' ? 'r':'R') )
             return false;
         if ((player == 'w' ? this.state.white_king_has_moved:this.state.black_king_has_moved) != 0)
             return false;
@@ -164,13 +165,14 @@ class Board extends React.Component {
         return false;
     }
     // return true if pawn is not breaking any of its rules
-    good_pawn(start, end, squares) {
+    good_pawn(start, end, squares, passant_pos) {
+        var passant = passant_pos == null ? this.state.passant_pos:passant_pos;
         var start_row = 8 - Math.floor(start / 8);
         var start_col = start % 8 + 1;
         var end_row = 8 - Math.floor(end / 8);
         var end_col = end % 8 + 1;
-        let row_diff = end_row - start_row;
-        let col_diff = end_col - start_col;
+        var row_diff = end_row - start_row;
+        var col_diff = end_col - start_col;
         const copy_squares = squares.slice();
 
         // only allow 2 space move if the pawn is in the start position
@@ -185,17 +187,33 @@ class Board extends React.Component {
             if (col_diff == 0)
                 return false;
         }
-        // cannot move diagonally if there is no piece to capture
-        if (row_diff == -1 || row_diff == 1) {
-            if (col_diff == -1 || col_diff == 1) {
-                if (copy_squares[end].ascii == null)
+        // cannot move diagonally if there is no piece to capture UNLESS it's en passant
+        if (row_diff == 1 && col_diff == 1) { // white going up and right
+            if (copy_squares[end].ascii == null) {
+                if ( copy_squares[start + 1].ascii != 'P' || passant != (start + 1) )
+                    return false;
+            }
+        } else if (row_diff == 1 && col_diff == -1) { // white going up and left
+            if (copy_squares[end].ascii == null) {
+                if ( copy_squares[start - 1].ascii != 'P' || passant != (start - 1) )
+                    return false;
+            }
+        } else if (row_diff == -1 && col_diff == 1) { // black going down and right
+            if (copy_squares[end].ascii == null) {
+                if ( copy_squares[start + 1].ascii != 'p' || passant != (start + 1) )
+                    return false;
+            }
+        } else if (row_diff == -1 && col_diff == -1) { // black going down and left
+            if (copy_squares[end].ascii == null) {
+                if ( copy_squares[start - 1].ascii != 'p' || passant != (start - 1) )
                     return false;
             }
         }
+
         return true;
     }
     // return true if move from start to end is illegal
-    invalid_move(start, end, squares) {
+    invalid_move(start, end, squares, passant_pos) {
         const copy_squares = squares.slice();
         // if the piece is a bishop, queen, rook, or pawn,
         // it cannot skip over pieces
@@ -209,7 +227,7 @@ class Board extends React.Component {
             return invalid;
         // checking for certain rules regarding the pawn
         var pawn = copy_squares[start].ascii.toLowerCase() == 'p';
-        invalid = pawn == true && this.good_pawn(start, end, copy_squares) == false;
+        invalid = pawn == true && this.good_pawn(start, end, copy_squares, passant_pos) == false;
         if (invalid)
             return invalid;
         // checking for if castling is allowed
@@ -220,7 +238,7 @@ class Board extends React.Component {
         return invalid;
     }
     // returns true if there are any possible moves
-    can_move_there(start, end, squares) {
+    can_move_there(start, end, squares, passant_pos) {
         const copy_squares = squares.slice();
         if (start == end) // cannot move to the position you're already sitting in
             return false;
@@ -231,7 +249,7 @@ class Board extends React.Component {
         if (player == copy_squares[end].player || copy_squares[start].can_move(start, end) == false)
             return false;
         // player cannot make an invalid move
-        if (this.invalid_move(start, end, copy_squares) == true)
+        if (this.invalid_move(start, end, copy_squares, passant_pos) == true)
             return false;
 
         // cannot castle if in check
@@ -329,7 +347,7 @@ class Board extends React.Component {
         return total_eval;
     }
     // helper function for execute_bot: minimax algorithm for chess bot
-    minimax(depth, is_black_player, alpha, beta, squares, RA_of_starts, RA_of_ends) {
+    minimax(depth, is_black_player, alpha, beta, squares, RA_of_starts, RA_of_ends, passant_pos) {
         const copy_squares = squares.slice();
         if (depth == 0)
             return this.evaluate_black(copy_squares);
@@ -338,7 +356,8 @@ class Board extends React.Component {
         // iterate through the possible start positions
         for (let i = 0; i < 64; i++) {
             let start = RA_of_starts[i];
-            let isPlayerPiece = copy_squares[start].ascii != null && copy_squares[start].player == (is_black_player ? 'b':'w');
+            let isPlayerPiece = copy_squares[start].ascii != null
+                && copy_squares[start].player == (is_black_player ? 'b':'w');
 
             // start should be the position of a piece owned by the player
             if (isPlayerPiece) {
@@ -350,14 +369,21 @@ class Board extends React.Component {
                  */
                 for (let j = 0; j < 64; j++) {
                     let end = RA_of_ends[j];
-                    if (this.can_move_there(start, end, copy_squares) == true) {
-                        // make the move on test board
+                    if (this.can_move_there(start, end, copy_squares, passant_pos) == true) {
                         const test_squares = squares.slice();
-                        const test_squares_2 = this.make_move(test_squares, start, end).slice();
+                        // make the move on test board
+                        const test_squares_2 = this.make_move(test_squares, start, end, passant_pos).slice();
+                        // en passant helper
+                        var passant = 65;
+                        if (test_squares[end].ascii == (is_black_player ? 'P':'p')
+                        && start >= (is_black_player ? 8:48) && start <= (is_black_player ? 15:55)
+                        && (end - start == (is_black_player ? 16:-16))) {
+                            passant = end;
+                        }
 
                         // black player maximizes value, white player minimizes value
                         let value = this.minimax(depth - 1, !is_black_player, alpha, beta,
-                            test_squares_2, RA_of_starts, RA_of_ends);
+                            test_squares_2, RA_of_starts, RA_of_ends, passant);
                         if (is_black_player) {
                             if (value > best_value)
                                 best_value = value;
@@ -424,11 +450,16 @@ class Board extends React.Component {
                 });
             } else {
                 const test_squares = passed_in_squares.slice();
+                // make the move
                 const test_squares_2 = this.make_move(test_squares, start, end).slice();
+                // en passant helper
+                var passant_pos = 65;
+                if (test_squares[start].ascii == 'P' && start >= 8 && start <= 15 && (end - start == 16))
+                    passant_pos = end;
 
                 // board evaluation using mini_max algorithm by looking at future turns
                 let board_eval = this.minimax(depth - 1, false, -1000, 1000, test_squares_2,
-                    RA_of_starts, RA_of_ends);
+                    RA_of_starts, RA_of_ends, passant_pos);
                 if (board_eval >= best_value) {
                     best_value = board_eval;
                     rand_start = start;
@@ -452,11 +483,16 @@ class Board extends React.Component {
 
             // when a piece is captured, record it
             const copy_black_collection = this.state.pieces_collected_by_black.slice();
-            if (copy_squares[rand_end].ascii != null) {
-                copy_black_collection.push(<Collected
-                    key={copy_squares[rand_end].ascii}
-                    value = {copy_squares[rand_end]}/>
-                );
+            if (copy_squares[rand_end].ascii != null)
+                copy_black_collection.push(<Collected value = {copy_squares[rand_end]}/>);
+            if (copy_squares[rand_start].ascii == 'P') {
+                if (rand_end - rand_start == 7) { // black going down to the left
+                    if (rand_start - 1 == this.state.passant_pos)
+                        copy_black_collection.push(<Collected value = {copy_squares[rand_start - 1]}/>);
+                } else if (rand_end - rand_start == 9) { // black going down to the right
+                    if (rand_start + 1 == this.state.passant_pos)
+                        copy_black_collection.push(<Collected value = {copy_squares[rand_start + 1]}/>);
+                }
             }
 
             let final_squares = clear_highlight(copy_squares).slice();
@@ -481,6 +517,17 @@ class Board extends React.Component {
 
             // make the move
             final_squares = this.make_move(final_squares, rand_start, rand_end).slice();
+            // en passant helper
+            if (final_squares[rand_end].ascii == 'P' && rand_start >= 8
+            && rand_start <= 15 && (rand_end - rand_start == 16)) {
+                this.setState( {
+                    passant_pos: rand_end,
+                });
+            } else {
+                this.setState( {
+                    passant_pos: 65,
+                });
+            }
             final_squares = highlight_mate( 'w', final_squares,
                 (this.checkmate('w', final_squares)), (this.stalemate('w', final_squares)) ).slice();
 
@@ -586,6 +633,16 @@ class Board extends React.Component {
                 if (copy_squares[i].ascii != null)
                     copy_white_collection.push(<Collected value = {copy_squares[i]}/>);
 
+                if (copy_squares[this.state.source].ascii == 'p') {
+                    if (i - this.state.source == -7) { // white going up to the right
+                        if (this.state.source + 1 == this.state.passant_pos)
+                            copy_white_collection.push(<Collected value = {copy_squares[this.state.source + 1]}/>);
+                    } else if (i - this.state.source == -9) { // white going up to the left
+                        if (this.state.source - 1 == this.state.passant_pos)
+                            copy_white_collection.push(<Collected value = {copy_squares[this.state.source - 1]}/>);
+                    }
+                }
+
                 // note if the king or rook has moved (cannot castle if these have moved)
                 if (copy_squares[this.state.source].ascii == 'k') {
                     this.setState( {
@@ -606,13 +663,24 @@ class Board extends React.Component {
 
                 // make the move
                 copy_squares = this.make_move(copy_squares, this.state.source, i).slice();
+                // en passant helper
+                if (copy_squares[i].ascii == 'p' && this.state.source >= 48
+                && this.state.source <= 55 && (i - this.state.source == -16)) {
+                    this.setState( {
+                        passant_pos: i,
+                    });
+                } else {
+                    this.setState( {
+                        passant_pos: 65,
+                    });
+                }
                 copy_squares = highlight_mate( 'b', copy_squares,
                     (this.checkmate('b', copy_squares)), (this.stalemate('b', copy_squares)) ).slice();
 
                 this.setState( {
                     turn: (this.state.turn == 'w' ? 'b':'w'),
                     source: -1, // set source back to non-clicked
-                    bot_running: 1,
+                    bot_running: 0,
                     squares: copy_squares,
                     pieces_collected_by_white: copy_white_collection,
                 });
@@ -1024,6 +1092,7 @@ function initializeBoard() {
     for (let i = 8*6; i < 8*6+8; i++) {
         squares[i] = new Pawn('w');
     }
+
     // black knights
     squares[1] = new Knight('b');
     squares[6] = new Knight('b');
@@ -1053,6 +1122,7 @@ function initializeBoard() {
         if (squares[i] == null)
             squares[i] = new filler_piece(null);
     }
+
     return squares;
 }
 
