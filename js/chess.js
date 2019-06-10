@@ -59,6 +59,120 @@ class Board extends React.Component {
         } );
     }
 
+    // full function for executing a move
+    execute_move(player, squares, start, end) {
+        // when a piece is captured, record it
+        let copy_squares = squares.slice();
+
+        // clear highlights
+        copy_squares = clear_highlight(copy_squares).slice();
+        copy_squares = clear_possible_highlight(copy_squares).slice();
+        if (player == 'w') {
+            for (let j = 0; j < 64; j++) { // user has heeded warning
+                if (copy_squares[j].ascii == 'k') {
+                    copy_squares[j].in_check = 0;
+                    break;
+                }
+            }
+        }
+
+        // note if king or rook has moved (castling not allowed if these have moved)
+        if (copy_squares[start].ascii == (player == 'w' ? 'k':'K')) {
+            if (player == 'w') {
+                this.setState( {
+                    white_king_has_moved: 1,
+                });
+            } else {
+                this.setState( {
+                    black_king_has_moved: 1,
+                });
+            }
+        }
+        if (copy_squares[start].ascii == (player == 'w' ? 'r':'R')) {
+            if (start == (player == 'w' ? 56:0)) {
+                if (player == 'w') {
+                    this.setState( {
+                        left_white_rook_has_moved: 1,
+                    });
+                } else {
+                    this.setState( {
+                        left_black_rook_has_moved: 1,
+                    });
+                }
+            } else if (start == (player == 'w' ? 63:7)) {
+                if (player == 'w') {
+                    this.setState( {
+                        right_white_rook_has_moved: 1,
+                    });
+                } else {
+                    this.setState( {
+                        right_black_rook_has_moved: 1,
+                    });
+                }
+            }
+        }
+
+        // add captured pieces to collection
+        const collection = (player == 'w'
+            ? this.state.pieces_collected_by_white.slice():this.state.pieces_collected_by_black.slice());
+        if (copy_squares[end].ascii != null)
+            collection.push(<Collected value = {copy_squares[end]}/>);
+        if (copy_squares[start].ascii == (player == 'w' ? 'p':'P')) {
+            if (end - start == (player == 'w' ? -9:7)) { // black going down to the left OR white going up to the left
+                if (start - 1 == this.state.passant_pos)
+                    collection.push(<Collected value = {copy_squares[start - 1]}/>);
+            } else if (end - start == (player == 'w' ? -7:9)) { // black going down to the right OR white going up to the right
+                if (start + 1 == this.state.passant_pos)
+                    collection.push(<Collected value = {copy_squares[start + 1]}/>);
+            }
+        }
+
+        // make the move
+        copy_squares = this.make_move(copy_squares, start, end).slice();
+        // en passant helper
+        var passant_true = ( player == 'w'
+            ? (copy_squares[end].ascii == 'p' && start >= 48 && start <= 55 && (end - start == -16))
+            : (copy_squares[end].ascii == 'P' && start >= 8 && start <= 15 && (end - start == 16)) );
+        if (passant_true) {
+            this.setState( {
+                passant_pos: end,
+            });
+        } else {
+            this.setState( {
+                passant_pos: 65,
+            });
+        }
+
+        // highlight mate
+        if (player == 'w') {
+            copy_squares = highlight_mate( 'b', copy_squares,
+                (this.checkmate('b', copy_squares)), (this.stalemate('b', copy_squares)) ).slice();
+        } else {
+            copy_squares = highlight_mate( 'w', copy_squares,
+                (this.checkmate('w', copy_squares)), (this.stalemate('w', copy_squares)) ).slice();
+        }
+
+        if (player == 'b') {
+            this.setState( {
+                turn: 'w',
+                source: -1, // set source back to non-clicked
+                first_pos: start,
+                second_pos: end,
+                bot_running: 0,
+                squares: copy_squares,
+                pieces_collected_by_black: collection,
+            });
+        } else {
+            this.setState( {
+                turn: 'b',
+                source: -1, // set source back to non-clicked
+                bot_running: 1,
+                squares: copy_squares,
+                pieces_collected_by_white: collection,
+            });
+        }
+    }
+
     // make a move
     make_move(squares, start, end, passant_pos) {
         const copy_squares = squares.slice();
@@ -481,65 +595,7 @@ class Board extends React.Component {
                 });
             }
 
-            // when a piece is captured, record it
-            const copy_black_collection = this.state.pieces_collected_by_black.slice();
-            if (copy_squares[rand_end].ascii != null)
-                copy_black_collection.push(<Collected value = {copy_squares[rand_end]}/>);
-            if (copy_squares[rand_start].ascii == 'P') {
-                if (rand_end - rand_start == 7) { // black going down to the left
-                    if (rand_start - 1 == this.state.passant_pos)
-                        copy_black_collection.push(<Collected value = {copy_squares[rand_start - 1]}/>);
-                } else if (rand_end - rand_start == 9) { // black going down to the right
-                    if (rand_start + 1 == this.state.passant_pos)
-                        copy_black_collection.push(<Collected value = {copy_squares[rand_start + 1]}/>);
-                }
-            }
-
-            let final_squares = clear_highlight(copy_squares).slice();
-
-            // note if king or rook has moved (castling not allowed if these have moved)
-            if (final_squares[rand_start].ascii == 'K') {
-                this.setState( {
-                    black_king_has_moved: 1,
-                });
-            }
-            if (final_squares[rand_start].ascii == 'R') {
-                if (rand_start == 0) {
-                    this.setState( {
-                        left_black_rook_has_moved: 1,
-                    });
-                } else if (rand_start == 7) {
-                    this.setState( {
-                        right_black_rook_has_moved: 1,
-                    });
-                }
-            }
-
-            // make the move
-            final_squares = this.make_move(final_squares, rand_start, rand_end).slice();
-            // en passant helper
-            if (final_squares[rand_end].ascii == 'P' && rand_start >= 8
-            && rand_start <= 15 && (rand_end - rand_start == 16)) {
-                this.setState( {
-                    passant_pos: rand_end,
-                });
-            } else {
-                this.setState( {
-                    passant_pos: 65,
-                });
-            }
-            final_squares = highlight_mate( 'w', final_squares,
-                (this.checkmate('w', final_squares)), (this.stalemate('w', final_squares)) ).slice();
-
-            this.setState( {
-                turn: 'w',
-                source: -1, // set source back to non-clicked
-                first_pos: rand_start,
-                second_pos: rand_end,
-                bot_running: 0,
-                squares: final_squares,
-                pieces_collected_by_black: copy_black_collection,
-            });
+            this.execute_move('b', copy_squares, rand_start, rand_end);
         }
     }
 
@@ -618,72 +674,7 @@ class Board extends React.Component {
                     return 'invalid move';
                 }
 
-                // clear highlights
-                copy_squares = clear_highlight(copy_squares).slice();
-                copy_squares = clear_possible_highlight(copy_squares).slice();
-                for (let j = 0; j < 64; j++) { // user has heeded warning
-                    if (copy_squares[j].ascii == 'k') {
-                        copy_squares[j].in_check = 0;
-                        break;
-                    }
-                }
-
-                // when a piece is captured, record it
-                const copy_white_collection = this.state.pieces_collected_by_white.slice();
-                if (copy_squares[i].ascii != null)
-                    copy_white_collection.push(<Collected value = {copy_squares[i]}/>);
-
-                if (copy_squares[this.state.source].ascii == 'p') {
-                    if (i - this.state.source == -7) { // white going up to the right
-                        if (this.state.source + 1 == this.state.passant_pos)
-                            copy_white_collection.push(<Collected value = {copy_squares[this.state.source + 1]}/>);
-                    } else if (i - this.state.source == -9) { // white going up to the left
-                        if (this.state.source - 1 == this.state.passant_pos)
-                            copy_white_collection.push(<Collected value = {copy_squares[this.state.source - 1]}/>);
-                    }
-                }
-
-                // note if the king or rook has moved (cannot castle if these have moved)
-                if (copy_squares[this.state.source].ascii == 'k') {
-                    this.setState( {
-                        white_king_has_moved: 1,
-                    });
-                }
-                if (copy_squares[this.state.source].ascii == 'r') {
-                    if (this.state.source == 56) {
-                        this.setState( {
-                            left_white_rook_has_moved: 1,
-                        });
-                    } else if (this.state.source == 63) {
-                        this.setState( {
-                            right_white_rook_has_moved: 1,
-                        });
-                    }
-                }
-
-                // make the move
-                copy_squares = this.make_move(copy_squares, this.state.source, i).slice();
-                // en passant helper
-                if (copy_squares[i].ascii == 'p' && this.state.source >= 48
-                && this.state.source <= 55 && (i - this.state.source == -16)) {
-                    this.setState( {
-                        passant_pos: i,
-                    });
-                } else {
-                    this.setState( {
-                        passant_pos: 65,
-                    });
-                }
-                copy_squares = highlight_mate( 'b', copy_squares,
-                    (this.checkmate('b', copy_squares)), (this.stalemate('b', copy_squares)) ).slice();
-
-                this.setState( {
-                    turn: (this.state.turn == 'w' ? 'b':'w'),
-                    source: -1, // set source back to non-clicked
-                    bot_running: 0,
-                    squares: copy_squares,
-                    pieces_collected_by_white: copy_white_collection,
-                });
+                this.execute_move('w', copy_squares, this.state.source, i);
 
                 // chess bot for black player
                 let search_depth = 3;
