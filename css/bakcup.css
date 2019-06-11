@@ -2,6 +2,8 @@ body, html {
 	background-color: #242424;
 	color: white;
 	font-family: "Gill Sans", sans-serif;
+	overflow-x: hidden;
+	overflow-y: auto;
 }
 
 /* unvisited link */
@@ -26,7 +28,9 @@ a:active {
 
 .right_screen {
 	position: relative;
-	display: inline-block;
+	display: flex;
+	align-items: center;
+	justify-content: center;
   	height: 100%;
   	width: 50%;
 }
@@ -36,7 +40,8 @@ a:active {
 	float: left;
   	height: 100%;
   	width: 50%;
-	overflow: auto;
+	overflow-y: none;
+	overflow-x: none;
 }
 
 .header_font {
@@ -52,6 +57,25 @@ a:active {
 .medium_font {
 	font-size: 1.3em;
 	line-height: 1;
+}
+
+.button_font {
+	font-size: 1.3em;
+	line-height: 1;
+}
+
+.side_box {
+	width: 65%;
+	min-width: 400px;
+	box-sizing: border-box;
+	background-color: #77e1d7;
+	color: #242424;
+	border-radius: 3px;
+	box-shadow: 1px 1px 3px #232621;
+	position: relative;
+	top: calc(50% - 41vmin);
+	left: 13%;
+	margin: 0 0 40 0;
 }
 
 .wrapper {
@@ -93,20 +117,6 @@ a:active {
 	margin-bottom: 25px;
 }
 
-.side_box {
-	width: 65%;
-	box-sizing: border-box;
-	background-color: #77e1d7;
-	color: #242424;
-	border-radius: 3px;
-	box-shadow: 1px 1px 3px #232621;
-	position: relative;
-	top: calc(50% - 41vmin);
-	left: 13%;
-	margin: 0 0 30 0;
-}
-
-
 .transparent {
 	background-color: transparent;
 }
@@ -119,6 +129,7 @@ a:active {
 
 .title {
 	padding-bottom: 0px;
+	padding-top: 5px;
 }
 
 .collected {
@@ -126,10 +137,9 @@ a:active {
 	border: none;
 	border-width: 0px;
 	background-color: transparent;
-	height: 4vmin;
-	width: 4vmin;
+	height: 30px;
+	width: 30px;
 	background-position: center;
-
     background-size: 65%;
     background-repeat: no-repeat;
     background-position: center;
@@ -162,11 +172,6 @@ a:active {
 	margin-right: 20px;
 }
 
-.button_font {
-	font-size: 1.3em;
-	line-height: 1;
-}
-
 .history {
 	width: 10%;
 	margin-right: 10px;
@@ -181,16 +186,33 @@ a:active {
 .table {
 	position: absolute;
 	top: calc(50% - 42vmin);
-	left: calc(50% - 46vmin);
 	width: 80vmin;
 	height: 80vmin;
+	margin-right: 50px;
+	min-width: 400px;
+	min-height: 400px;
 	box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.2), 0 0px 15px 0 rgba(0, 0, 0, 0.19);
+	overflow: hidden;
+}
+
+.square {
+	outline: none !important;
+	border: none;
+	border-width: 0px;
+	float: left;
+	height: 10vmin;
+	width: 10vmin;
+	min-height: 50px;
+	min-width: 50px;
+	transition: background-color 0.7s;
+	-webkit-transition: background-color 0.7s;
+	cursor: pointer;
 }
 
 .label {
 	outline: none !important;
 	background-color: transparent;
-	color: #deeaee;
+	color: transparent;
 	border: none;
 	font-size: 120%;
 	height: 10vmin;
@@ -218,18 +240,6 @@ a:active {
 .piece {
 	height: 60%;
 	width: auto;
-}
-
-.square {
-	outline: none !important;
-	border: none;
-	border-width: 0px;
-	float: left;
-	height: 10vmin;
-	width: 10vmin;
-	transition: background-color 0.7s;
-	-webkit-transition: background-color 0.7s;
-	cursor: pointer;
 }
 
 .white_square {
@@ -284,20 +294,32 @@ a:active {
 }
 
 @media screen and (max-width: 1100px) {
+	body, html {
+		background-color: #242424;
+		color: white;
+		font-family: "Gill Sans", sans-serif;
+		overflow-x: hidden;
+		overflow-y: auto;
+	}
+
 	.right_screen {
-	  	width: 100%;
+	  	width: 100% !important;
 		height: 100vmin;
-		margin-left: 5px;
+		margin-left: 20px;
+		overflow-x: none;
+		overflow-y: none;
 	}
 
 	.left_screen {
 		width: 100% !important;
 		height: auto;
+		overflow-x: hidden;
+		overflow-y: hidden;
 	}
 
 	.row_label {
 		top: calc(50% - 42vmin);
-		left: calc(50% - 52vmin);
+		left: calc(50% - 51vmin);
 	}
 
 	.col_label {
@@ -305,13 +327,7 @@ a:active {
 		left: calc(50% - 42vmin);
 	}
 
-	.table {
-		top: calc(50% - 42vmin);
-		left: calc(50% - 42vmin);
-	}
-
 	.side_box {
-		width: 60%;
 		top: calc(50% - 41vmin);
 		left: 17%;
 		margin: 40 0 20 0;
