@@ -837,7 +837,7 @@ class Board extends React.Component {
             board.push(<div key={i}>{squareRows}</div>)
         }
 
-        if (this.state.loading == false) {
+        if (/*this.state.loading*/false) {
             setTimeout(() => { this.setState( { loading: false, }); }, 4500);
             return (
                 <div>
