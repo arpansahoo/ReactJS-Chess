@@ -18,6 +18,7 @@ class Board extends React.Component {
     constructor() {
         super();
         this.state = {
+            loading: true,
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
@@ -47,6 +48,7 @@ class Board extends React.Component {
     // reset the board
     reset() {
         this.setState( {
+            loading: false,
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
@@ -700,7 +702,6 @@ class Board extends React.Component {
         let copy_squares = this.state.squares.slice();
 
         if (this.state.history_num - 1 != this.state.turn_num) {
-            alert("currently viewing history");
             return 'currently viewing history';
         }
 
@@ -778,7 +779,7 @@ class Board extends React.Component {
                 this.execute_move('w', copy_squares, this.state.source, i);
 
                 // chess bot for black player
-                let search_depth = 3;
+                let search_depth = 1;
                 setTimeout(() => { this.execute_bot(search_depth, this.state.squares); }, 700);
                 return 'black made move';
             }
@@ -836,97 +837,114 @@ class Board extends React.Component {
             board.push(<div key={i}>{squareRows}</div>)
         }
 
-        return (
-
-        <div>
-            <div className="left_screen">
-
-                <div className="side_box">
-                    <div className="content">
-                        <p className="header_font">Pokémon Chess</p>
-                        <p className="medium_font">Gotta Capture 'Em All!&nbsp;&nbsp;
-                            <a href="./how_to_play.html">How to Play</a>
-                        </p>
+        if (this.state.loading) {
+            setTimeout(() => { this.setState( { loading: false, }); }, 4500);
+            return (
+                <div>
+                    <div class="center-on-page">
+                        <div class="pokeball">
+                            <div class="pokeball__button"></div>
+                        </div>
+                    </div>
+                    <div className="loading_wrapper">
+                        <p className="loading_font">Game Loading...</p>
                     </div>
                 </div>
+            );
+        }
+        else {
+            return (
 
-                <div className="side_box">
 
-                    <div className="content title">
-                        <p className="header_2_font">Match Information</p>
-                    </div>
+            <div>
+                <div className="left_screen fadeIn">
 
-                    <div className="wrapper">
-                        <div className="player_box">
-                            <p className="medium_font">White (You)</p>
-                            {this.state.pieces_collected_by_white}
+                    <div className="side_box">
+                        <div className="content">
+                            <p className="header_font">Pokémon Chess</p>
+                            <p className="medium_font">Gotta Capture 'Em All!&nbsp;&nbsp;
+                                <a href="./how_to_play.html">How to Play</a>
+                            </p>
                         </div>
-                        <div className="player_box black_player_color">
-                            <p className="medium_font">Black (Bot)</p>
-                            {this.state.pieces_collected_by_black}
+                    </div>
+
+                    <div className="side_box">
+
+                        <div className="content title">
+                            <p className="header_2_font">Match Information</p>
                         </div>
-                    </div>
-                    <div className="wrapper">
-                        { this.state.turn == 'w' ? <div className="highlight_box"></div>
-                            : <div className="highlight_box transparent"></div> }
-                        { this.state.turn == 'b' ? <div className="highlight_box"></div>
-                            : <div className="highlight_box transparent"></div> }
+
+                        <div className="wrapper">
+                            <div className="player_box">
+                                <p className="medium_font">White (You)</p>
+                                {this.state.pieces_collected_by_white}
+                            </div>
+                            <div className="player_box black_player_color">
+                                <p className="medium_font">Black (Bot)</p>
+                                {this.state.pieces_collected_by_black}
+                            </div>
+                        </div>
+                        <div className="wrapper">
+                            { this.state.turn == 'w' ? <div className="highlight_box"></div>
+                                : <div className="highlight_box transparent"></div> }
+                            { this.state.turn == 'b' ? <div className="highlight_box"></div>
+                                : <div className="highlight_box transparent"></div> }
+                        </div>
+
+
+                        <div className="button_wrapper">
+                            <button className="reset_button" onClick={() => this.reset()}>
+                                <p className="button_font"> Restart Game </p>
+                            </button>
+                            <button className="reset_button history" onClick={() => this.viewHistory('back')}>
+                                <p className="button_font">&lt;</p>
+                            </button>
+                            <button className="reset_button history" onClick={() => this.viewHistory('next')}>
+                                <p className="button_font">&gt;</p>
+                            </button>
+                        </div>
+
+                        <div className="mate_wrapper">
+                            <p className="small_font">
+                                {this.in_check('w', this.state.squares) && !this.checkmate('w', this.state.squares)
+                                && !this.stalemate('w', this.state.squares) == true ? 'You are in check!': ''}
+                            </p>
+                            <p className="small_font">
+                                {this.in_check('b', this.state.squares) && !this.checkmate('b', this.state.squares)
+                                && !this.stalemate('b', this.state.squares) == true ? 'Black player is in check.':''}
+                            </p>
+                            <p className="small_font">
+                                {this.checkmate('w', this.state.squares) == true ? 'You lost by checkmate.':''}
+                            </p>
+                            <p className="small_font">
+                                {this.checkmate('b', this.state.squares) == true ? 'You won by checkmate!':''}
+                            </p>
+                            <p className="small_font">
+                                {((this.stalemate('w', this.state.squares) && this.state.turn == 'w') == true)
+                                    ? 'You are in stalemate. Game over.':''}
+                            </p>
+                            <p className="small_font">
+                                {((this.stalemate('b', this.state.squares) && this.state.turn == 'b') == true)
+                                    ? 'Black is in stalemate. Game over.':''}
+                            </p>
+                        </div>
+
                     </div>
 
-                    <div className="button_wrapper">
-                        <button className="reset_button" onClick={() => this.reset()}>
-                            <p className="button_font"> Restart Game </p>
-                        </button>
-                        <button className="reset_button history" onClick={() => this.viewHistory('back')}>
-                            <p className="button_font">&lt;</p>
-                        </button>
-                        <button className="reset_button history" onClick={() => this.viewHistory('next')}>
-                            <p className="button_font">&gt;</p>
-                        </button>
-                    </div>
+                </div>
 
+                <div className="right_screen fadeIn">
+                    <div className="row_label"> {row_nums} </div>
+                    <div className="table"> {board} </div>
+                    <div className="col_label"> {col_nums} </div>
                 </div>
 
             </div>
 
-            <div className="right_screen">
-                <div className="row_label"> {row_nums} </div>
-                <div className="table"> {board} </div>
-                <div className="col_label"> {col_nums} </div>
-            </div>
-
-        </div>
-
-        );
+            );
+        }
     }
 }
-
-/*
-<div className="content alt2">
-    <p className="medium_font">
-        {this.in_check('w', this.state.squares) && !this.checkmate('w', this.state.squares)
-        && !this.stalemate('w', this.state.squares) == true ? 'You are in check!': ''}
-    </p>
-    <p className="medium_font">
-        {this.in_check('b', this.state.squares) && !this.checkmate('b', this.state.squares)
-        && !this.stalemate('b', this.state.squares) == true ? 'Black player is in check.':''}
-    </p>
-    <p className="medium_font">
-        {this.checkmate('w', this.state.squares) == true ? 'You lost by checkmate.':''}
-    </p>
-    <p className="medium_font">
-        {this.checkmate('b', this.state.squares) == true ? 'You won by checkmate!':''}
-    </p>
-    <p className="medium_font">
-        {((this.stalemate('w', this.state.squares) && this.state.turn == 'w') == true)
-            ? 'You are in stalemate. Game over.':''}
-    </p>
-    <p className="medium_font">
-        {((this.stalemate('b', this.state.squares) && this.state.turn == 'b') == true)
-            ? 'Black is in stalemate. Game over.':''}
-    </p>
-</div>
-*/
 
 class Game extends React.Component {
     render() {
