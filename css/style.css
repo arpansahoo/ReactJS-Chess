@@ -5,13 +5,60 @@ body, html {
 	overflow-x: hidden;
 }
 
-.fadeIn {
-     animation: fade 1s ease-in-out;
+@-webkit-keyframes fadeInDown {
+  from {
+    opacity: 0;
+    -webkit-transform: translate3d(0, -100%, 0);
+    transform: translate3d(0, -100%, 0);
+  }
+
+  to {
+    opacity: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-@keyframes fade {
-  from { opacity: 0;}
-  to { opacity: 1; }
+.bounceInRight {
+	animation: bounceInRight 1s ease-in-out;
+}
+
+@-webkit-keyframes bounceInRight {
+  from,
+  60%,
+  75%,
+  90%,
+  to {
+    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  from {
+    opacity: 0;
+    -webkit-transform: translate3d(3000px, 0, 0);
+    transform: translate3d(3000px, 0, 0);
+  }
+
+  60% {
+    opacity: 1;
+    -webkit-transform: translate3d(-25px, 0, 0);
+    transform: translate3d(-25px, 0, 0);
+  }
+
+  75% {
+    -webkit-transform: translate3d(10px, 0, 0);
+    transform: translate3d(10px, 0, 0);
+  }
+
+  90% {
+    -webkit-transform: translate3d(-5px, 0, 0);
+    transform: translate3d(-5px, 0, 0);
+  }
+
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 .loading_wrapper {
@@ -38,6 +85,8 @@ body, html {
 	left: 50%;
 	transform: translate(-50%,-50%);
 }
+
+
 /* Poké Styles */
 .pokeball {
   position: relative;
@@ -66,7 +115,7 @@ body, html {
   height: 20px;
   background: #000;
 }
-.pokeball__button {
+.pokeball_button {
   position: absolute;
   top: calc(50% - 30px);
   left: calc(50% - 30px);
@@ -376,12 +425,45 @@ a:active {
 	background-color:#77e1d7;
 }
 
-.in_check_square {
-	background-color:#ff4233;
+.in_check_square_white {
+	animation: flash-white 1s;
+	background-color: #deeaee;
 }
+
+.in_check_square_black {
+	animation: flash-black 1s;
+	background-color: #034f84;
+}
+
 
 .checked_square {
 	background-color:#ff4233;
+}
+
+@-webkit-keyframes flash-white {
+  from,
+  50%,
+  to {
+    background-color: #ff4233;
+  }
+
+  25%,
+  75% {
+    background-color: #deeaee;
+  }
+}
+
+@-webkit-keyframes flash-black {
+  from,
+  50%,
+  to {
+    background-color: #ff4233;
+  }
+
+  25%,
+  75% {
+    background-color: #034f84;
+  }
 }
 
 .stale_square {

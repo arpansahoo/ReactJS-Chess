@@ -837,26 +837,24 @@ class Board extends React.Component {
             board.push(<div key={i}>{squareRows}</div>)
         }
 
-        if (/*this.state.loading*/false) {
+        if (this.state.loading) {
             setTimeout(() => { this.setState( { loading: false, }); }, 4500);
             return (
-                <div>
-                    <div class="center-on-page">
-                        <div class="pokeball">
-                            <div class="pokeball__button"></div>
-                        </div>
-                    </div>
-                    <div className="loading_wrapper">
-                        <p className="loading_font">Game Loading...</p>
+            <div>
+                <div className="center-on-page">
+                    <div className="pokeball">
+                        <div className="pokeball_button"></div>
                     </div>
                 </div>
+                <div className="loading_wrapper">
+                    <p className="loading_font">Game Loading...</p>
+                </div>
+            </div>
             );
         }
         else {
             return (
-
-
-            <div>
+            <div className="bounceInRight">
                 <div className="left_screen">
 
                     <div className="side_box">
@@ -932,15 +930,12 @@ class Board extends React.Component {
                     </div>
 
                 </div>
-
                 <div className="right_screen">
                     <div className="row_label"> {row_nums} </div>
                     <div className="table"> {board} </div>
                     <div className="col_label"> {col_nums} </div>
                 </div>
-
             </div>
-
             );
         }
     }
@@ -1378,8 +1373,10 @@ function calc_squareColor(i, j, squares) {
         ? "highlighted_white_square" : "highlighted_black_square";
     }
     if (squares[(i*8) + j].ascii != null && squares[(i*8) + j].ascii.toLowerCase() == 'k') {
-        if (squares[(i*8) + j].in_check == 1)
-            square_color = "in_check_square";
+        if (squares[(i*8) + j].in_check == 1) {
+            square_color = (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
+            ? "in_check_square_white":"in_check_square_black"
+        }
         if (squares[(i*8) + j].checked >= 1) {
             square_color = (squares[(i*8) + j].checked == 1)
             ? "checked_square":"stale_square";
