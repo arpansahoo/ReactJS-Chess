@@ -779,7 +779,7 @@ class Board extends React.Component {
                 this.execute_move('w', copy_squares, this.state.source, i);
 
                 // chess bot for black player
-                let search_depth = 1;
+                let search_depth = 3;
                 setTimeout(() => { this.execute_bot(search_depth, this.state.squares); }, 700);
                 return 'black made move';
             }
@@ -837,7 +837,7 @@ class Board extends React.Component {
             board.push(<div key={i}>{squareRows}</div>)
         }
 
-        if (this.state.loading) {
+        if (this.state.loading == false) {
             setTimeout(() => { this.setState( { loading: false, }); }, 4500);
             return (
                 <div>
@@ -857,7 +857,7 @@ class Board extends React.Component {
 
 
             <div>
-                <div className="left_screen fadeIn">
+                <div className="left_screen">
 
                     <div className="side_box">
                         <div className="content">
@@ -933,7 +933,7 @@ class Board extends React.Component {
 
                 </div>
 
-                <div className="right_screen fadeIn">
+                <div className="right_screen">
                     <div className="row_label"> {row_nums} </div>
                     <div className="table"> {board} </div>
                     <div className="col_label"> {col_nums} </div>
