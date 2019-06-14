@@ -306,7 +306,7 @@ a:active {
 .reset_button {
 	display: inline-block;
 	position: relative;
-	width: 30%;
+	width: 28%;
 	cursor: pointer;
 	text-align: center;
 	outline: none;
@@ -317,11 +317,13 @@ a:active {
 	transition: background-color 0.5s;
 	margin-bottom: 0px;
 	margin-top: 5px;
-	margin-right: 20px;
+	margin-right: 10px;
+	padding-right: 5px;
+	padding-left: 5px;
 }
 
 .button_font {
-	font-size: 1.3em;
+	font-size: 120%;
 	line-height: 1;
 }
 

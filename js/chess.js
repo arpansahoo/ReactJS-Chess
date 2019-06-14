@@ -87,7 +87,16 @@ class Board extends React.Component {
         let copy_squares = null;
         let copy_white_collection = null;
         let copy_black_collection = null;
-        if (direction =='back' && this.state.history_num - 2 >= 0) {
+
+        if (direction == 'back_atw') {
+            copy_squares = this.state.history[0].slice();
+            copy_white_collection = [];
+            copy_black_collection = [];
+        } else if (direction == 'next_atw' && this.state.history_num < this.state.turn_num + 1) {
+            copy_squares = this.state.history[this.state.turn_num].slice();
+            copy_white_collection = this.state.history_white_collection[this.state.turn_num - 1];
+            copy_black_collection = this.state.history_black_collection[this.state.turn_num - 1]
+        } else if (direction == 'back' && this.state.history_num - 2 >= 0) {
             copy_squares = this.state.history[this.state.history_num - 2].slice();
             copy_white_collection = this.state.history_white_collection[this.state.history_num - 2];
             copy_black_collection = this.state.history_black_collection[this.state.history_num - 2];
@@ -114,9 +123,11 @@ class Board extends React.Component {
             (this.stalemate(opp_player, copy_squares))).slice();
 
         var index = (direction == 'back' ? (this.state.history_num - 2):this.state.history_num);
-        if (index != 0) {
-            copy_squares[this.state.history_h1[index]].highlight = 1;
-            copy_squares[this.state.history_h2[index]].highlight = 1;
+        if (index != 0 && direction != 'back_atw') {
+            if (this.state.history_h1[index] != null) {
+                copy_squares[this.state.history_h1[index]].highlight = 1;
+                copy_squares[this.state.history_h2[index]].highlight = 1;
+            }
             if (this.state.history_h3[index] != null) {
                 copy_squares[this.state.history_h3[index]].highlight = 1;
                 copy_squares[this.state.history_h4[index]].highlight = 1;
@@ -133,11 +144,23 @@ class Board extends React.Component {
             });
         }
 
+        let new_history_num = (direction == 'back' ? (this.state.history_num - 1):(this.state.history_num + 1));
+        if (direction == 'back_atw')
+            new_history_num = 1
+        if (direction === 'next_atw')
+            new_history_num = this.state.turn_num + 1;
+
         this.setState( {
             squares: copy_squares,
-            history_num: (direction == 'back' ? (this.state.history_num - 1):(this.state.history_num + 1)),
+            history_num: new_history_num,
             turn: (this.state.turn == 'w' ? 'b':'w'),
         });
+
+        if (direction == 'back_atw' || direction == 'next_atw') {
+            this.setState( {
+                turn: 'w',
+            });
+        }
     }
 
     // full function for executing a move
@@ -811,7 +834,7 @@ class Board extends React.Component {
     // Render the page
     render() {
         //4500 ms
-        setTimeout(() => { this.setState( { loading: false, }); }, 0);
+        setTimeout(() => { this.setState( { loading: false, }); }, 4500);
 
         const row_nums = [];
         for (let i = 8; i > 0; i--) {
@@ -922,14 +945,20 @@ class Board extends React.Component {
 
 
                             <div className="button_wrapper">
-                                <button className="reset_button" onClick={() => this.reset()}>
-                                    <p className="button_font"> Restart Game </p>
+                                <button className="reset_button history" onClick={() => this.viewHistory('back_atw')}>
+                                    <p className="button_font">&lt;&lt;</p>
                                 </button>
                                 <button className="reset_button history" onClick={() => this.viewHistory('back')}>
                                     <p className="button_font">&lt;</p>
                                 </button>
+                                <button className="reset_button" onClick={() => this.reset()}>
+                                    <p className="button_font">Restart Game</p>
+                                </button>
                                 <button className="reset_button history" onClick={() => this.viewHistory('next')}>
                                     <p className="button_font">&gt;</p>
+                                </button>
+                                <button className="reset_button history" onClick={() => this.viewHistory('next_atw')}>
+                                    <p className="button_font">&gt;&gt;</p>
                                 </button>
                             </div>
 
