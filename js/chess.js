@@ -2,13 +2,13 @@
 function Square(props) {
     if (props.value != null) {
         return (
-            <button className = {"square " + props.color + props.corner}
+            <button className = {"square " + props.color + props.corner + props.cursor}
             onClick = {props.onClick}>
                 {props.value.icon}
             </button>
         );
     } else {
-        return ( <button className = {"square " + props.color + props.corner}
+        return ( <button className = {"square " + props.color + props.corner + props.cursor}
             onClick = {props.onClick}> </button> );
     }
 }
@@ -38,10 +38,12 @@ class Board extends React.Component {
             pieces_collected_by_black: [],
             history: [initializeBoard()],
             history_num: 1,
-            history_h1: [0],
-            history_h2: [0],
+            history_h1: [null],
+            history_h2: [null],
             history_h3: [null],
             history_h4: [null],
+            history_white_collection: [null],
+            history_black_collection: [null],
         };
     }
 
@@ -72,6 +74,8 @@ class Board extends React.Component {
             history_h2: [0],
             history_h3: [null],
             history_h4: [null],
+            history_white_collection: [null],
+            history_black_collection: [null],
         } );
     }
 
@@ -81,10 +85,16 @@ class Board extends React.Component {
         }
 
         let copy_squares = null;
+        let copy_white_collection = null;
+        let copy_black_collection = null;
         if (direction =='back' && this.state.history_num - 2 >= 0) {
             copy_squares = this.state.history[this.state.history_num - 2].slice();
+            copy_white_collection = this.state.history_white_collection[this.state.history_num - 2];
+            copy_black_collection = this.state.history_black_collection[this.state.history_num - 2];
         } else if (direction == 'next' && this.state.history_num <= this.state.turn_num) {
             copy_squares = this.state.history[this.state.history_num].slice();
+            copy_white_collection = this.state.history_white_collection[this.state.history_num];
+            copy_black_collection = this.state.history_black_collection[this.state.history_num]
         } else {
             return 'no more history';
         }
@@ -98,13 +108,10 @@ class Board extends React.Component {
                 break;
             }
         }
-        if (this.state.turn == 'w') {
-            copy_squares = highlight_mate( 'b', copy_squares,
-                (this.checkmate('b', copy_squares)), (this.stalemate('b', copy_squares)) ).slice();
-        } else {
-            copy_squares = highlight_mate( 'w', copy_squares,
-                (this.checkmate('w', copy_squares)), (this.stalemate('w', copy_squares)) ).slice();
-        }
+
+        const opp_player = (this.state.turn == 'w') ? 'b':'w';
+        copy_squares = highlight_mate(opp_player, copy_squares, (this.checkmate(opp_player, copy_squares)),
+            (this.stalemate(opp_player, copy_squares))).slice();
 
         var index = (direction == 'back' ? (this.state.history_num - 2):this.state.history_num);
         if (index != 0) {
@@ -115,6 +122,17 @@ class Board extends React.Component {
                 copy_squares[this.state.history_h4[index]].highlight = 1;
             }
         }
+
+        if (copy_white_collection != null) {
+            this.setState( {
+                pieces_collected_by_white: copy_white_collection,
+            });
+        } if (copy_black_collection != null) {
+            this.setState( {
+                pieces_collected_by_black: copy_black_collection,
+            });
+        }
+
         this.setState( {
             squares: copy_squares,
             history_num: (direction == 'back' ? (this.state.history_num - 1):(this.state.history_num + 1)),
@@ -125,6 +143,18 @@ class Board extends React.Component {
     // full function for executing a move
     execute_move(player, squares, start, end) {
         let copy_squares = squares.slice();
+
+        // clear highlights
+        copy_squares = clear_highlight(copy_squares).slice();
+        if (player == 'w') {
+            copy_squares = clear_possible_highlight(copy_squares).slice();
+            for (let j = 0; j < 64; j++) { // user has heeded warning
+                if (copy_squares[j].ascii == 'k') {
+                    copy_squares[j].in_check = 0;
+                    break;
+                }
+            }
+        }
 
         // note if king or rook has moved (castling not allowed if these have moved)
         if (copy_squares[start].ascii == (player == 'w' ? 'k':'K')) {
@@ -177,18 +207,6 @@ class Board extends React.Component {
             }
         }
 
-        // clear highlights
-        copy_squares = clear_highlight(copy_squares).slice();
-        if (player == 'w') {
-            copy_squares = clear_possible_highlight(copy_squares).slice();
-            for (let j = 0; j < 64; j++) { // user has heeded warning
-                if (copy_squares[j].ascii == 'k') {
-                    copy_squares[j].in_check = 0;
-                    break;
-                }
-            }
-        }
-
         // make the move
         copy_squares = this.make_move(copy_squares, start, end).slice();
 
@@ -221,9 +239,13 @@ class Board extends React.Component {
         const copy_history_h2 = this.state.history_h2.slice();
         const copy_history_h3 = this.state.history_h3.slice();
         const copy_history_h4 = this.state.history_h4.slice();
+        const copy_white_collection = this.state.history_white_collection.slice();
+        const copy_black_collection = this.state.history_black_collection.slice();
         copy_history.push(copy_squares);
         copy_history_h1.push(start);
         copy_history_h2.push(end);
+        copy_white_collection.push( player == 'w' ? collection:this.state.pieces_collected_by_white);
+        copy_black_collection.push( player == 'b' ? collection:this.state.pieces_collected_by_black);
 
         var isKing = copy_squares[end].ascii == 'k' || copy_squares[end].ascii == 'K';
         if (isKing && Math.abs(end - start) == 2) {
@@ -238,6 +260,7 @@ class Board extends React.Component {
             copy_history_h3.push(null);
             copy_history_h4.push(null);
         }
+
         this.setState( {
             history: copy_history,
             history_num: this.state.history_num + 1,
@@ -245,27 +268,26 @@ class Board extends React.Component {
             history_h2: copy_history_h2,
             history_h3: copy_history_h3,
             history_h4: copy_history_h4,
+            history_white_collection: copy_white_collection,
+            history_black_collection: copy_black_collection,
+            squares: copy_squares,
+            source: -1,
+            turn_num: this.state.turn_num + 1,
         });
 
         // set state
         if (player == 'b') {
             this.setState( {
                 turn: 'w',
-                turn_num: this.state.turn_num + 1,
-                source: -1, // set source back to non-clicked
                 first_pos: start,
                 second_pos: end,
                 bot_running: 0,
-                squares: copy_squares,
                 pieces_collected_by_black: collection,
             });
         } else {
             this.setState( {
                 turn: 'b',
-                turn_num: this.state.turn_num + 1,
-                source: -1, // set source back to non-clicked
                 bot_running: 1,
-                squares: copy_squares,
                 pieces_collected_by_white: collection,
             });
         }
@@ -788,7 +810,8 @@ class Board extends React.Component {
 
     // Render the page
     render() {
-        setTimeout(() => { this.setState( { loading: false, }); }, 4500);
+        //4500 ms
+        setTimeout(() => { this.setState( { loading: false, }); }, 0);
 
         const row_nums = [];
         for (let i = 8; i > 0; i--) {
@@ -816,23 +839,32 @@ class Board extends React.Component {
             for (let j = 0; j < 8; j++) {
                 let square_corner = null;
                 if (i == 0 && j == 0) {
-                    square_corner = " top_left_square";
+                    square_corner = " top_left_square ";
                 } else if (i == 0 && j == 7) {
-                    square_corner = " top_right_square";
+                    square_corner = " top_right_square ";
                 } else if (i == 7 && j == 0) {
-                    square_corner = " bottom_left_square";
+                    square_corner = " bottom_left_square ";
                 } else if (i == 7 && j == 7) {
-                    square_corner = " bottom_right_square";
+                    square_corner = " bottom_right_square ";
                 } else {
-                    square_corner = "";
+                    square_corner = " ";
                 }
 
                 const copy_squares = this.state.squares.slice();
                 let square_color = calc_squareColor(i, j, copy_squares);
+                let square_cursor = "pointer";
+                if (copy_squares[(i*8) + j].player != 'w')
+                    square_cursor = "default";
+                if (this.state.bot_running == 1)
+                    square_cursor = "bot_running";
+                if (this.state.history_num - 1 != this.state.turn_num)
+                    square_cursor = "not_allowed";
+
                 squareRows.push(<Square key={i*8+j}
-                    value = {this.state.squares[(i*8) + j]}
+                    value = {copy_squares[(i*8) + j]}
                     color = {square_color}
                     corner = {square_corner}
+                    cursor = {square_cursor}
                     onClick = {() => this.handleClick((i*8) + j)} />
                 );
             }

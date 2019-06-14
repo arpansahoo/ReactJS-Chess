@@ -77,7 +77,7 @@ body, html {
 /* Animation */
 @keyframes blink {
   from { background: #eee;}
-  to { background: #e74c3c; }
+  to { background: #fd4949; }
 }
 @keyframes shake {
   0 { transform: translate(0, 0) rotate(0); }
@@ -354,7 +354,22 @@ a:active {
 	width: 10vmin;
 	transition: background-color 0.7s;
 	-webkit-transition: background-color 0.7s;
+}
+
+.pointer {
 	cursor: pointer;
+}
+
+.not_allowed {
+	cursor: not-allowed;
+}
+
+.default {
+	cursor: default;
+}
+
+.bot_running {
+	cursor: progress;
 }
 
 .label {
@@ -441,7 +456,7 @@ a:active {
 
 
 .checked_square {
-	background-color:#ff4233;
+	background-color: #ff4233;
 }
 
 @-webkit-keyframes flash-white {
