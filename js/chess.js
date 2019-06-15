@@ -22,6 +22,7 @@ class Board extends React.Component {
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
+            true_turn: 'w',
             turn_num: 0,
             first_pos: null,
             second_pos: null,
@@ -44,18 +45,20 @@ class Board extends React.Component {
             history_h4: [null],
             history_white_collection: [null],
             history_black_collection: [null],
+            mated: false,
         };
     }
 
     // reset the board
     reset() {
-        if (this.state.history_num - 1 == this.state.turn_num && this.state.turn == 'b')
+        if (this.state.history_num - 1 == this.state.turn_num && this.state.turn == 'b' && !this.state.mated)
             return 'cannot reset';
         this.setState( {
             loading: false,
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
+            true_turn: 'w',
             turn_num: 0,
             first_pos: null,
             second_pos: null,
@@ -78,11 +81,12 @@ class Board extends React.Component {
             history_h4: [null],
             history_white_collection: [null],
             history_black_collection: [null],
+            mated: false,
         } );
     }
 
     viewHistory(direction) {
-        if (this.state.history_num - 1 == this.state.turn_num && this.state.turn == 'b') {
+        if (this.state.history_num - 1 == this.state.turn_num && this.state.turn == 'b' && !this.state.mated) {
             return 'not allowed to view history';
         }
 
@@ -120,12 +124,20 @@ class Board extends React.Component {
             }
         }
 
-        const opp_player = (this.state.turn == 'w') ? 'b':'w';
-        copy_squares = highlight_mate(opp_player, copy_squares, (this.checkmate(opp_player, copy_squares)),
-            (this.stalemate(opp_player, copy_squares))).slice();
+        copy_squares = highlight_mate(this.state.true_turn, copy_squares,
+            this.checkmate(this.state.true_turn, copy_squares),
+            this.stalemate(this.state.true_turn, copy_squares)).slice();
 
-        var index = (direction == 'back' ? (this.state.history_num - 2):this.state.history_num);
-        if (index != 0 && direction != 'back_atw') {
+
+        var index = null;
+        if (direction == 'back')
+            index = (this.state.history_num - 2);
+        else if (direction == 'next')
+            index = this.state.history_num;
+        else if (direction == 'next_atw')
+            index = this.state.turn_num;
+
+        if (index != 0 && index != null) {
             if (this.state.history_h1[index] != null) {
                 copy_squares[this.state.history_h1[index]].highlight = 1;
                 copy_squares[this.state.history_h2[index]].highlight = 1;
@@ -160,7 +172,7 @@ class Board extends React.Component {
 
         if (direction == 'back_atw' || direction == 'next_atw') {
             this.setState( {
-                turn: 'w',
+                turn: (direction == 'back_atw' ? 'w':this.state.true_turn),
             });
         }
     }
@@ -286,6 +298,16 @@ class Board extends React.Component {
             copy_history_h4.push(null);
         }
 
+        let check_mated = this.checkmate('w', copy_squares) || this.checkmate('b', copy_squares);
+        let stale_mated = (this.stalemate('w', copy_squares) && player == 'w')
+        || (this.stalemate('b', copy_squares) && player == 'b');
+
+        if (check_mated || stale_mated) {
+            this.setState( {
+                mated: true,
+            });
+        }
+
         this.setState( {
             history: copy_history,
             history_num: this.state.history_num + 1,
@@ -304,6 +326,7 @@ class Board extends React.Component {
         if (player == 'b') {
             this.setState( {
                 turn: 'w',
+                true_turn: 'w',
                 first_pos: start,
                 second_pos: end,
                 bot_running: 0,
@@ -312,6 +335,7 @@ class Board extends React.Component {
         } else {
             this.setState( {
                 turn: 'b',
+                true_turn: 'b',
                 bot_running: 1,
                 pieces_collected_by_white: collection,
             });
@@ -828,7 +852,7 @@ class Board extends React.Component {
                 // chess bot for black player
                 let search_depth = 3;
                 setTimeout(() => { this.execute_bot(search_depth, this.state.squares); }, 700);
-                return 'black made move';
+
             }
         }
     }
