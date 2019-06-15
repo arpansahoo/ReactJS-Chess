@@ -111,7 +111,7 @@ body, html {
 }
 
 .bounceInDown {
-	animation: bounceInDown 1s ease-in-out;
+	animation: bounceInDown 1.2s ease-in-out;
 }
 
 @-webkit-keyframes bounceInDown {

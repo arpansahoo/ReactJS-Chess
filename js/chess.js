@@ -46,6 +46,9 @@ class Board extends React.Component {
             history_white_collection: [null],
             history_black_collection: [null],
             mated: false,
+            move_made: false,
+            capture_made: false,
+            viewing_history: false,
         };
     }
 
@@ -82,6 +85,9 @@ class Board extends React.Component {
             history_white_collection: [null],
             history_black_collection: [null],
             mated: false,
+            move_made: false,
+            capture_made: false,
+            viewing_history: false,
         } );
     }
 
@@ -128,7 +134,6 @@ class Board extends React.Component {
             this.checkmate(this.state.true_turn, copy_squares),
             this.stalemate(this.state.true_turn, copy_squares)).slice();
 
-
         var index = null;
         if (direction == 'back')
             index = (this.state.history_num - 2);
@@ -148,16 +153,6 @@ class Board extends React.Component {
             }
         }
 
-        if (copy_white_collection != null) {
-            this.setState( {
-                pieces_collected_by_white: copy_white_collection,
-            });
-        } if (copy_black_collection != null) {
-            this.setState( {
-                pieces_collected_by_black: copy_black_collection,
-            });
-        }
-
         let new_history_num = (direction == 'back' ? (this.state.history_num - 1):(this.state.history_num + 1));
         if (direction == 'back_atw')
             new_history_num = 1;
@@ -165,9 +160,12 @@ class Board extends React.Component {
             new_history_num = this.state.turn_num + 1;
 
         this.setState( {
+            viewing_history: true,
             squares: copy_squares,
             history_num: new_history_num,
             turn: (this.state.turn == 'w' ? 'b':'w'),
+            pieces_collected_by_white: copy_white_collection != null ? copy_white_collection:this.state.pieces_collected_by_white,
+            pieces_collected_by_black: copy_black_collection != null ? copy_black_collection:this.state.pieces_collected_by_black,
         });
 
         if (direction == 'back_atw' || direction == 'next_atw') {
@@ -232,8 +230,12 @@ class Board extends React.Component {
         // add captured pieces to collection
         const collection = (player == 'w'
             ? this.state.pieces_collected_by_white.slice():this.state.pieces_collected_by_black.slice());
-        if (copy_squares[end].ascii != null)
+        if (copy_squares[end].ascii != null) {
             collection.push(<Collected value = {copy_squares[end]}/>);
+            this.setState( {
+                capture_made: true,
+            });
+        }
         if (copy_squares[start].ascii == (player == 'w' ? 'p':'P')) {
             if (end - start == (player == 'w' ? -9:7)) { // black going down to the left OR white going up to the left
                 if (start - 1 == this.state.passant_pos)
@@ -251,15 +253,7 @@ class Board extends React.Component {
         var passant_true = ( player == 'w'
             ? (copy_squares[end].ascii == 'p' && start >= 48 && start <= 55 && (end - start == -16))
             : (copy_squares[end].ascii == 'P' && start >= 8 && start <= 15 && (end - start == 16)) );
-        if (passant_true) {
-            this.setState( {
-                passant_pos: end,
-            });
-        } else {
-            this.setState( {
-                passant_pos: 65,
-            });
-        }
+        let passant = passant_true ? end:65;
 
         // highlight mate
         if (player == 'w') {
@@ -302,13 +296,8 @@ class Board extends React.Component {
         let stale_mated = (this.stalemate('w', copy_squares) && player == 'w')
         || (this.stalemate('b', copy_squares) && player == 'b');
 
-        if (check_mated || stale_mated) {
-            this.setState( {
-                mated: true,
-            });
-        }
-
         this.setState( {
+            passant_pos: passant,
             history: copy_history,
             history_num: this.state.history_num + 1,
             history_h1: copy_history_h1,
@@ -320,23 +309,22 @@ class Board extends React.Component {
             squares: copy_squares,
             source: -1,
             turn_num: this.state.turn_num + 1,
+            mated: ((check_mated || stale_mated) ? true:false),
+            turn: (player == 'b' ? 'w':'b'),
+            true_turn: (player == 'b' ? 'w':'b'),
+            bot_running: (player == 'b' ? 0:1),
+            move_made: true,
         });
 
         // set state
         if (player == 'b') {
             this.setState( {
-                turn: 'w',
-                true_turn: 'w',
                 first_pos: start,
                 second_pos: end,
-                bot_running: 0,
                 pieces_collected_by_black: collection,
             });
         } else {
             this.setState( {
-                turn: 'b',
-                true_turn: 'b',
-                bot_running: 1,
                 pieces_collected_by_white: collection,
             });
         }
@@ -689,6 +677,8 @@ class Board extends React.Component {
     }
     // Chess bot for black player
     execute_bot(depth, passed_in_squares) {
+        if (this.state.mated)
+            return 'bot cannot run';
         const copy_squares = passed_in_squares.slice();
         let rand_start = 100;
         let rand_end = 100;
@@ -776,11 +766,7 @@ class Board extends React.Component {
             return 'currently viewing history';
         }
 
-        let check_mated = this.checkmate('w', copy_squares) || this.checkmate('b', copy_squares);
-        let stale_mated = (this.stalemate('w', copy_squares) && this.state.turn == 'w')
-        || (this.stalemate('b', copy_squares) && this.state.turn == 'b');
-
-        if (check_mated || stale_mated)
+        if (this.state.mated)
             return 'game-over';
 
         // first click
@@ -809,6 +795,7 @@ class Board extends React.Component {
 
         // second click (to move piece from the source to destination)
         if (this.state.source > -1) {
+
             var cannibalism = (copy_squares[i].player == this.state.turn);
             /* if user is trying to select one of her other pieces,
              * change highlight to the new selection, but do not move any pieces
@@ -847,12 +834,20 @@ class Board extends React.Component {
                     return 'invalid move';
                 }
 
-                this.execute_move('w', copy_squares, this.state.source, i);
+                this.setState ( {
+                    move_made: false,
+                    capture_made: false,
+                    viewing_history: false,
+                });
+                setTimeout(() => { this.execute_move('w', copy_squares, this.state.source, i); }, 10);
+                setTimeout(() => { this.setState ( {
+                    move_made: false,
+                    capture_made: false,
+                }); }, 300);
 
                 // chess bot for black player
                 let search_depth = 3;
-                setTimeout(() => { this.execute_bot(search_depth, this.state.squares); }, 700);
-
+                setTimeout(() => { this.execute_bot(search_depth, this.state.squares); }, 500);
             }
         }
     }
@@ -860,7 +855,7 @@ class Board extends React.Component {
     // Render the page
     render() {
         //4500 ms
-        setTimeout(() => { this.setState( { loading: false, }); }, 0);
+        setTimeout(() => { this.setState( { loading: false, }); }, 4500);
 
         const row_nums = [];
         for (let i = 8; i > 0; i--) {
@@ -904,10 +899,12 @@ class Board extends React.Component {
                 let square_cursor = "pointer";
                 if (copy_squares[(i*8) + j].player != 'w')
                     square_cursor = "default";
-                if (this.state.bot_running == 1)
+                if (this.state.bot_running == 1 && !this.state.mated)
                     square_cursor = "bot_running";
                 if (this.state.history_num - 1 != this.state.turn_num)
                     square_cursor = "not_allowed";
+                if (this.state.mated)
+                    square_cursor = "default";
 
                 squareRows.push(<Square key={i*8+j}
                     value = {copy_squares[(i*8) + j]}
@@ -920,9 +917,38 @@ class Board extends React.Component {
             board.push(<div key={i}>{squareRows}</div>)
         }
 
+        let in_check = this.in_check('b', this.state.squares) || this.in_check('w', this.state.squares);
+        let black_mated = this.checkmate('b', this.state.squares);
+        let white_mated = this.checkmate('w', this.state.squares);
+        let not_history = !(this.state.history_num - 1 != this.state.turn_num) && !this.state.viewing_history;
+        let stale = (this.stalemate('w', this.state.squares) && this.state.turn == 'w')
+            || (this.stalemate('b', this.state.squares) && this.state.turn == 'b');
+
         return (
         <div>
+            {this.state.move_made && !this.state.capture_made && <div>
+                <audio ref="audio_tag" src="./sfx/Move.mp3" controls autoPlay hidden/>
+            </div>}
+            {this.state.capture_made && not_history && <div>
+                <audio ref="audio_tag" src="./sfx/Capture.mp3" controls autoPlay hidden/>
+            </div>}
+            {in_check && not_history && !black_mated && !white_mated && <div>
+                <audio ref="audio_tag" src="./sfx/Check.mp3" controls autoPlay hidden/>
+            </div>}
+            {black_mated && not_history && <div>
+                <audio ref="audio_tag" src="./sfx/Black_Defeat.mp3" controls autoPlay hidden/>
+            </div>}
+            {white_mated && not_history && <div>
+                <audio ref="audio_tag" src="./sfx/White_Defeat.mp3" controls autoPlay hidden/>
+            </div>}
+            {stale && not_history && <div>
+                <audio ref="audio_tag" src="./sfx/Stalemate.mp3" controls autoPlay hidden/>
+            </div>}
+
             <div>
+                <div>
+                    <audio ref="audio_tag" src="./sfx/Intro_OST.mp3" controls autoPlay hidden/>
+                </div>
                 <div className="center-on-page fadeOut">
                     <div className="pokeball">
                         <div className="pokeball_button"></div>
@@ -941,7 +967,7 @@ class Board extends React.Component {
                             <div className="content">
                                 <p className="header_font">Pokémon Chess</p>
                                 <p className="medium_font">Gotta Capture 'Em All!&nbsp;&nbsp;
-                                    <a href="./how_to_play.html">How to Play</a>
+                                    <a href="./how_to_play.html" target="_blank">How to Play</a>
                                 </p>
                             </div>
                         </div>
@@ -1320,6 +1346,11 @@ function initializeBoard() {
     // white queen & king
     squares[56+3] = new Queen('w');
     squares[56+4] = new King('w');
+
+    /*squares[7] = new King('b');
+    squares[9] = new Rook('w');
+    squares[16] = new Rook('w');
+    squares[59] = new King('w');*/
 
     for (let i = 0; i < 64; i++) {
         if (squares[i] == null)
