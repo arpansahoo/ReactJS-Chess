@@ -49,6 +49,8 @@ class Board extends React.Component {
 
     // reset the board
     reset() {
+        if (this.state.history_num - 1 == this.state.turn_num && this.state.turn == 'b')
+            return 'cannot reset';
         this.setState( {
             loading: false,
             squares: initializeBoard(),
@@ -94,8 +96,8 @@ class Board extends React.Component {
             copy_black_collection = [];
         } else if (direction == 'next_atw' && this.state.history_num < this.state.turn_num + 1) {
             copy_squares = this.state.history[this.state.turn_num].slice();
-            copy_white_collection = this.state.history_white_collection[this.state.turn_num - 1];
-            copy_black_collection = this.state.history_black_collection[this.state.turn_num - 1]
+            copy_white_collection = this.state.history_white_collection[this.state.turn_num];
+            copy_black_collection = this.state.history_black_collection[this.state.turn_num]
         } else if (direction == 'back' && this.state.history_num - 2 >= 0) {
             copy_squares = this.state.history[this.state.history_num - 2].slice();
             copy_white_collection = this.state.history_white_collection[this.state.history_num - 2];
@@ -146,7 +148,7 @@ class Board extends React.Component {
 
         let new_history_num = (direction == 'back' ? (this.state.history_num - 1):(this.state.history_num + 1));
         if (direction == 'back_atw')
-            new_history_num = 1
+            new_history_num = 1;
         if (direction === 'next_atw')
             new_history_num = this.state.turn_num + 1;
 
@@ -834,7 +836,7 @@ class Board extends React.Component {
     // Render the page
     render() {
         //4500 ms
-        setTimeout(() => { this.setState( { loading: false, }); }, 4500);
+        setTimeout(() => { this.setState( { loading: false, }); }, 0);
 
         const row_nums = [];
         for (let i = 8; i > 0; i--) {

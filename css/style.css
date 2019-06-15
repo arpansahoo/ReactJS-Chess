@@ -304,11 +304,12 @@ a:active {
 }
 
 .reset_button {
-	display: inline-block;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	position: relative;
 	width: 28%;
 	cursor: pointer;
-	text-align: center;
 	outline: none;
 	color: white;
 	background-color: #00ba6d;
@@ -318,12 +319,10 @@ a:active {
 	margin-bottom: 0px;
 	margin-top: 5px;
 	margin-right: 10px;
-	padding-right: 5px;
-	padding-left: 5px;
 }
 
 .button_font {
-	font-size: 120%;
+	font-size: 1.2em;
 	line-height: 1;
 }
 
