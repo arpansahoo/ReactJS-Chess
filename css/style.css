@@ -446,12 +446,12 @@ a:active {
 }
 
 .in_check_square_white {
-	animation: flash-white 1s;
+	animation: flash-white 0.5s;
 	background-color: #deeaee;
 }
 
 .in_check_square_black {
-	animation: flash-black 1s;
+	animation: flash-black 0.5s;
 	background-color: #034f84;
 }
 

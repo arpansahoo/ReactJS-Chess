@@ -48,7 +48,9 @@ class Board extends React.Component {
             mated: false,
             move_made: false,
             capture_made: false,
+            check_flash: false,
             viewing_history: false,
+            just_clicked: false,
         };
     }
 
@@ -87,92 +89,10 @@ class Board extends React.Component {
             mated: false,
             move_made: false,
             capture_made: false,
+            check_flash: false,
             viewing_history: false,
+            just_clicked: false,
         } );
-    }
-
-    viewHistory(direction) {
-        if (this.state.history_num - 1 == this.state.turn_num && this.state.turn == 'b' && !this.state.mated) {
-            return 'not allowed to view history';
-        }
-
-        let copy_squares = null;
-        let copy_white_collection = null;
-        let copy_black_collection = null;
-
-        if (direction == 'back_atw') {
-            copy_squares = this.state.history[0].slice();
-            copy_white_collection = [];
-            copy_black_collection = [];
-        } else if (direction == 'next_atw' && this.state.history_num < this.state.turn_num + 1) {
-            copy_squares = this.state.history[this.state.turn_num].slice();
-            copy_white_collection = this.state.history_white_collection[this.state.turn_num];
-            copy_black_collection = this.state.history_black_collection[this.state.turn_num]
-        } else if (direction == 'back' && this.state.history_num - 2 >= 0) {
-            copy_squares = this.state.history[this.state.history_num - 2].slice();
-            copy_white_collection = this.state.history_white_collection[this.state.history_num - 2];
-            copy_black_collection = this.state.history_black_collection[this.state.history_num - 2];
-        } else if (direction == 'next' && this.state.history_num <= this.state.turn_num) {
-            copy_squares = this.state.history[this.state.history_num].slice();
-            copy_white_collection = this.state.history_white_collection[this.state.history_num];
-            copy_black_collection = this.state.history_black_collection[this.state.history_num]
-        } else {
-            return 'no more history';
-        }
-
-        copy_squares = clear_possible_highlight(copy_squares).slice();
-        copy_squares = clear_highlight(copy_squares).slice();
-        for (let j = 0; j < 64; j++) {
-            if (copy_squares[j].ascii == (this.state.turn == 'w' ? 'k':'K')) {
-                copy_squares[j].in_check = 0;
-                copy_squares[j].checked = 0;
-                break;
-            }
-        }
-
-        copy_squares = highlight_mate(this.state.true_turn, copy_squares,
-            this.checkmate(this.state.true_turn, copy_squares),
-            this.stalemate(this.state.true_turn, copy_squares)).slice();
-
-        var index = null;
-        if (direction == 'back')
-            index = (this.state.history_num - 2);
-        else if (direction == 'next')
-            index = this.state.history_num;
-        else if (direction == 'next_atw')
-            index = this.state.turn_num;
-
-        if (index != 0 && index != null) {
-            if (this.state.history_h1[index] != null) {
-                copy_squares[this.state.history_h1[index]].highlight = 1;
-                copy_squares[this.state.history_h2[index]].highlight = 1;
-            }
-            if (this.state.history_h3[index] != null) {
-                copy_squares[this.state.history_h3[index]].highlight = 1;
-                copy_squares[this.state.history_h4[index]].highlight = 1;
-            }
-        }
-
-        let new_history_num = (direction == 'back' ? (this.state.history_num - 1):(this.state.history_num + 1));
-        if (direction == 'back_atw')
-            new_history_num = 1;
-        if (direction === 'next_atw')
-            new_history_num = this.state.turn_num + 1;
-
-        this.setState( {
-            viewing_history: true,
-            squares: copy_squares,
-            history_num: new_history_num,
-            turn: (this.state.turn == 'w' ? 'b':'w'),
-            pieces_collected_by_white: copy_white_collection != null ? copy_white_collection:this.state.pieces_collected_by_white,
-            pieces_collected_by_black: copy_black_collection != null ? copy_black_collection:this.state.pieces_collected_by_black,
-        });
-
-        if (direction == 'back_atw' || direction == 'next_atw') {
-            this.setState( {
-                turn: (direction == 'back_atw' ? 'w':this.state.true_turn),
-            });
-        }
     }
 
     // full function for executing a move
@@ -293,8 +213,8 @@ class Board extends React.Component {
         }
 
         let check_mated = this.checkmate('w', copy_squares) || this.checkmate('b', copy_squares);
-        let stale_mated = (this.stalemate('w', copy_squares) && player == 'w')
-        || (this.stalemate('b', copy_squares) && player == 'b');
+        let stale_mated = (this.stalemate('w', copy_squares) && player == 'b')
+        || (this.stalemate('b', copy_squares) && player == 'w');
 
         this.setState( {
             passant_pos: passant,
@@ -581,6 +501,7 @@ class Board extends React.Component {
     stalemate(player, squares) {
         if (this.in_check(player, squares))
             return false;
+
         // if there is even only 1 way to move her piece,
         // the player is not in stalemate
         for (let i = 0; i < 64; i++) {
@@ -595,7 +516,7 @@ class Board extends React.Component {
     }
     // return true if player is in checkmate
     checkmate(player, squares) {
-        if (!this.in_check(player, squares) || this.stalemate(player, squares))
+        if (!this.in_check(player, squares))
             return false;
         // if there is even only 1 way to move her piece,
         // the player is not in checkmate
@@ -777,6 +698,11 @@ class Board extends React.Component {
 
             //can only pick a piece that is not a blank square
             if (copy_squares[i].player != null) {
+                this.setState( {
+                    check_flash: false,
+                    just_clicked: false,
+                });
+
                 copy_squares = clear_check_highlight(copy_squares, 'w').slice();
                 copy_squares[i].highlight = 1; // highlight selected piece
 
@@ -826,6 +752,9 @@ class Board extends React.Component {
                                 break;
                             }
                         }
+                        this.setState( {
+                            check_flash: true,
+                        });
                     }
                     this.setState( {
                         source: -1,
@@ -834,16 +763,18 @@ class Board extends React.Component {
                     return 'invalid move';
                 }
 
-                this.setState ( {
-                    move_made: false,
-                    capture_made: false,
-                    viewing_history: false,
-                });
-                setTimeout(() => { this.execute_move('w', copy_squares, this.state.source, i); }, 10);
+                if (this.state.turn_num != 0) {
+                    this.setState ( {
+                        move_made: false,
+                        capture_made: false,
+                        viewing_history: false,
+                    });
+                }
+                setTimeout(() => { this.execute_move('w', copy_squares, this.state.source, i); }, 0);
                 setTimeout(() => { this.setState ( {
                     move_made: false,
                     capture_made: false,
-                }); }, 300);
+                }); }, 200);
 
                 // chess bot for black player
                 let search_depth = 3;
@@ -854,7 +785,6 @@ class Board extends React.Component {
 
     // Render the page
     render() {
-        //4500 ms
         setTimeout(() => { this.setState( { loading: false, }); }, 4500);
 
         const row_nums = [];
@@ -901,10 +831,10 @@ class Board extends React.Component {
                     square_cursor = "default";
                 if (this.state.bot_running == 1 && !this.state.mated)
                     square_cursor = "bot_running";
+                if (this.state.mated)
+                        square_cursor = "default";
                 if (this.state.history_num - 1 != this.state.turn_num)
                     square_cursor = "not_allowed";
-                if (this.state.mated)
-                    square_cursor = "default";
 
                 squareRows.push(<Square key={i*8+j}
                     value = {copy_squares[(i*8) + j]}
@@ -927,28 +857,21 @@ class Board extends React.Component {
         return (
         <div>
             {this.state.move_made && !this.state.capture_made && <div>
-                <audio ref="audio_tag" src="./sfx/Move.mp3" controls autoPlay hidden/>
-            </div>}
+                <audio ref="audio_tag" src="./sfx/Move.mp3" controls autoPlay hidden/> </div>}
             {this.state.capture_made && not_history && <div>
-                <audio ref="audio_tag" src="./sfx/Capture.mp3" controls autoPlay hidden/>
-            </div>}
+                <audio ref="audio_tag" src="./sfx/Capture.mp3" controls autoPlay hidden/> </div>}
             {in_check && not_history && !black_mated && !white_mated && <div>
-                <audio ref="audio_tag" src="./sfx/Check.mp3" controls autoPlay hidden/>
-            </div>}
+                <audio ref="audio_tag" src="./sfx/Check.mp3" controls autoPlay hidden/> </div>}
             {black_mated && not_history && <div>
-                <audio ref="audio_tag" src="./sfx/Black_Defeat.mp3" controls autoPlay hidden/>
-            </div>}
+                <audio ref="audio_tag" src="./sfx/Black_Defeat.mp3" controls autoPlay hidden/> </div>}
             {white_mated && not_history && <div>
-                <audio ref="audio_tag" src="./sfx/White_Defeat.mp3" controls autoPlay hidden/>
-            </div>}
+                <audio ref="audio_tag" src="./sfx/White_Defeat.mp3" controls autoPlay hidden/> </div>}
             {stale && not_history && <div>
-                <audio ref="audio_tag" src="./sfx/Stalemate.mp3" controls autoPlay hidden/>
-            </div>}
+                <audio ref="audio_tag" src="./sfx/Stalemate.mp3" controls autoPlay hidden/> </div>}
+            {this.state.check_flash && !(this.state.history_num - 1 != this.state.turn_num) && !this.state.just_clicked
+                && <div> <audio ref="audio_tag" src="./sfx/Check_Flash.mp3" controls autoPlay hidden/> </div>}
 
             <div>
-                <div>
-                    <audio ref="audio_tag" src="./sfx/Intro_OST.mp3" controls autoPlay hidden/>
-                </div>
                 <div className="center-on-page fadeOut">
                     <div className="pokeball">
                         <div className="pokeball_button"></div>
@@ -1017,11 +940,11 @@ class Board extends React.Component {
                             <div className="mate_wrapper">
                                 <p className="small_font">
                                     {this.in_check('w', this.state.squares) && !this.checkmate('w', this.state.squares)
-                                    && !this.stalemate('w', this.state.squares) == true ? 'You are in check!': ''}
+                                    == true ? 'You are in check!': ''}
                                 </p>
                                 <p className="small_font">
                                     {this.in_check('b', this.state.squares) && !this.checkmate('b', this.state.squares)
-                                    && !this.stalemate('b', this.state.squares) == true ? 'Black player is in check.':''}
+                                    == true ? 'Black player is in check.':''}
                                 </p>
                                 <p className="small_font">
                                     {this.checkmate('w', this.state.squares) == true ? 'You lost by checkmate.':''}
@@ -1055,6 +978,92 @@ class Board extends React.Component {
             </div>
         </div>
         );
+    }
+
+    // view previous turns in the game
+    viewHistory(direction) {
+        if (this.state.history_num - 1 == this.state.turn_num && this.state.turn == 'b' && !this.state.mated) {
+            return 'not allowed to view history';
+        }
+
+        let copy_squares = null;
+        let copy_white_collection = null;
+        let copy_black_collection = null;
+
+        if (direction == 'back_atw') {
+            copy_squares = this.state.history[0].slice();
+            copy_white_collection = [];
+            copy_black_collection = [];
+        } else if (direction == 'next_atw' && this.state.history_num < this.state.turn_num + 1) {
+            copy_squares = this.state.history[this.state.turn_num].slice();
+            copy_white_collection = this.state.history_white_collection[this.state.turn_num];
+            copy_black_collection = this.state.history_black_collection[this.state.turn_num]
+        } else if (direction == 'back' && this.state.history_num - 2 >= 0) {
+            copy_squares = this.state.history[this.state.history_num - 2].slice();
+            copy_white_collection = this.state.history_white_collection[this.state.history_num - 2];
+            copy_black_collection = this.state.history_black_collection[this.state.history_num - 2];
+        } else if (direction == 'next' && this.state.history_num <= this.state.turn_num) {
+            copy_squares = this.state.history[this.state.history_num].slice();
+            copy_white_collection = this.state.history_white_collection[this.state.history_num];
+            copy_black_collection = this.state.history_black_collection[this.state.history_num]
+        } else {
+            return 'no more history';
+        }
+
+        copy_squares = clear_possible_highlight(copy_squares).slice();
+        copy_squares = clear_highlight(copy_squares).slice();
+        for (let j = 0; j < 64; j++) {
+            if (copy_squares[j].ascii == (this.state.turn == 'w' ? 'k':'K')) {
+                copy_squares[j].in_check = 0;
+                copy_squares[j].checked = 0;
+                break;
+            }
+        }
+
+        var stale = this.stalemate(this.state.true_turn, copy_squares) && this.state.turn != this.state.true_turn;
+        copy_squares = highlight_mate(this.state.true_turn, copy_squares,
+            this.checkmate(this.state.true_turn, copy_squares), stale).slice();
+
+        var index = null;
+        if (direction == 'back')
+            index = (this.state.history_num - 2);
+        else if (direction == 'next')
+            index = this.state.history_num;
+        else if (direction == 'next_atw')
+            index = this.state.turn_num;
+
+        if (index != 0 && index != null) {
+            if (this.state.history_h1[index] != null) {
+                copy_squares[this.state.history_h1[index]].highlight = 1;
+                copy_squares[this.state.history_h2[index]].highlight = 1;
+            }
+            if (this.state.history_h3[index] != null) {
+                copy_squares[this.state.history_h3[index]].highlight = 1;
+                copy_squares[this.state.history_h4[index]].highlight = 1;
+            }
+        }
+
+        let new_history_num = (direction == 'back' ? (this.state.history_num - 1):(this.state.history_num + 1));
+        if (direction == 'back_atw')
+            new_history_num = 1;
+        if (direction === 'next_atw')
+            new_history_num = this.state.turn_num + 1;
+
+        this.setState( {
+            viewing_history: true,
+            just_clicked: true,
+            squares: copy_squares,
+            history_num: new_history_num,
+            turn: (this.state.turn == 'w' ? 'b':'w'),
+            pieces_collected_by_white: copy_white_collection != null ? copy_white_collection:this.state.pieces_collected_by_white,
+            pieces_collected_by_black: copy_black_collection != null ? copy_black_collection:this.state.pieces_collected_by_black,
+        });
+
+        if (direction == 'back_atw' || direction == 'next_atw') {
+            this.setState( {
+                turn: (direction == 'back_atw' ? 'w':this.state.true_turn),
+            });
+        }
     }
 }
 
@@ -1346,11 +1355,6 @@ function initializeBoard() {
     // white queen & king
     squares[56+3] = new Queen('w');
     squares[56+4] = new King('w');
-
-    /*squares[7] = new King('b');
-    squares[9] = new Rook('w');
-    squares[16] = new Rook('w');
-    squares[59] = new King('w');*/
 
     for (let i = 0; i < 64; i++) {
         if (squares[i] == null)
