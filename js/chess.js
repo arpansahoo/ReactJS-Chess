@@ -765,6 +765,7 @@ class Board extends React.Component {
                 }
 
                 this.execute_move('w', copy_squares, this.state.source, i);
+                
                 setTimeout(() => { this.setState ( {
                     move_made: false,
                     capture_made: false,
@@ -772,7 +773,7 @@ class Board extends React.Component {
 
                 // chess bot for black player
                 let search_depth = 3;
-                setTimeout(() => { this.execute_bot(search_depth, this.state.squares); }, 500);
+                setTimeout(() => { this.execute_bot(search_depth, this.state.squares); }, 700);
             }
         }
     }
@@ -839,7 +840,6 @@ class Board extends React.Component {
             board.push(<div key={i}>{squareRows}</div>)
         }
 
-        let in_check = this.in_check('b', this.state.squares) || this.in_check('w', this.state.squares);
         let black_mated = this.checkmate('b', this.state.squares);
         let white_mated = this.checkmate('w', this.state.squares);
         let not_history = !(this.state.history_num - 1 != this.state.turn_num) && !this.state.viewing_history;
@@ -852,8 +852,6 @@ class Board extends React.Component {
                 <audio ref="audio_tag" src="./sfx/Move.mp3" controls autoPlay hidden/> </div>}
             {this.state.capture_made && not_history && <div>
                 <audio ref="audio_tag" src="./sfx/Capture.mp3" controls autoPlay hidden/> </div>}
-            {in_check && not_history && !black_mated && !white_mated && <div>
-                <audio ref="audio_tag" src="./sfx/Check.mp3" controls autoPlay hidden/> </div>}
             {black_mated && not_history && <div>
                 <audio ref="audio_tag" src="./sfx/Black_Defeat.mp3" controls autoPlay hidden/> </div>}
             {white_mated && not_history && <div>

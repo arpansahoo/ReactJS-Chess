@@ -12,48 +12,42 @@ body, html, footer {
 	max-width: 1300px;
 	padding-right: 10px;
 	padding-left:  10px;
-	padding-top: 10px;
+	padding-top: 20px;
 	padding-bottom: 50px;
 }
 
 .header {
 	color: #00a494;
-	font-size: 2.7em;
+	font-size: 3em;
 	line-height: 1;
 	font-weight: normal;
 }
 
 .paragraph {
-	font-size: 1.5em;
+	font-size: 2em;
 	font-weight: normal;
 }
 
-/* unvisited link */
 a:link {
- 	color: #242424;
+ 	color: #00a494;
 }
-
-/* visited link */
 a:visited {
+ 	color: #00a494;
+}
+a:hover {
  	color: #242424;
 }
-
-/* mouse over link */
-a:hover {
- 	color: #00a494;
-}
-
-/* selected link */
 a:active {
- 	color: #00a494;
+ 	color: #242424;
 }
 
 .footer {
+	position: fixed;
 	width: 100%;
 	background: #242424;
 	color: white;
 	text-align: center;
-	position: fixed;
+	font-size: 1.3em;
 	bottom: 0;
 	left: 0;
 }
