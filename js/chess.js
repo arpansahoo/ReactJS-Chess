@@ -18,7 +18,6 @@ class Board extends React.Component {
     constructor() {
         super();
         this.state = {
-            loading: true,
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
@@ -59,7 +58,6 @@ class Board extends React.Component {
         if (this.state.history_num - 1 == this.state.turn_num && this.state.turn == 'b' && !this.state.mated)
             return 'cannot reset';
         this.setState( {
-            loading: false,
             squares: initializeBoard(),
             source: -1,
             turn: 'w',
@@ -701,6 +699,9 @@ class Board extends React.Component {
                 this.setState( {
                     check_flash: false,
                     just_clicked: false,
+                    move_made: false,
+                    capture_made: false,
+                    viewing_history: false,
                 });
 
                 copy_squares = clear_check_highlight(copy_squares, 'w').slice();
@@ -763,14 +764,7 @@ class Board extends React.Component {
                     return 'invalid move';
                 }
 
-                if (this.state.turn_num != 0) {
-                    this.setState ( {
-                        move_made: false,
-                        capture_made: false,
-                        viewing_history: false,
-                    });
-                }
-                setTimeout(() => { this.execute_move('w', copy_squares, this.state.source, i); }, 0);
+                this.execute_move('w', copy_squares, this.state.source, i);
                 setTimeout(() => { this.setState ( {
                     move_made: false,
                     capture_made: false,
@@ -785,8 +779,6 @@ class Board extends React.Component {
 
     // Render the page
     render() {
-        setTimeout(() => { this.setState( { loading: false, }); }, 4500);
-
         const row_nums = [];
         for (let i = 8; i > 0; i--) {
             row_nums.push(<Label key={i} value = {i} />);
@@ -871,109 +863,95 @@ class Board extends React.Component {
             {this.state.check_flash && !(this.state.history_num - 1 != this.state.turn_num) && !this.state.just_clicked
                 && <div> <audio ref="audio_tag" src="./sfx/Check_Flash.mp3" controls autoPlay hidden/> </div>}
 
-            <div>
-                <div className="center-on-page fadeOut">
-                    <div className="pokeball">
-                        <div className="pokeball_button"></div>
-                    </div>
-                </div>
-                <div className="loading_wrapper fadeOut">
-                    <p className="loading_font">Game Loading...</p>
-                </div>
-            </div>
-
             <div className="bounceInDown">
-                {!this.state.loading &&
-                    <div className="left_screen bounceInDown">
+                <div className="left_screen bounceInDown">
 
-                        <div className="side_box">
-                            <div className="content">
-                                <p className="header_font">Pokémon Chess</p>
-                                <p className="medium_font">Gotta Capture 'Em All!&nbsp;&nbsp;
-                                    <a href="./how_to_play.html" target="_blank">How to Play</a>
-                                </p>
-                            </div>
+                    <div className="side_box">
+                        <div className="content">
+                            <p className="header_font">ReactJS Chess</p>
+                            <p className="medium_font">Gotta Capture 'Em All!&nbsp;&nbsp;
+                                <a href="./how_to_play.html" target="_blank">How to Play</a>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="side_box">
+
+                        <div className="content title">
+                            <p className="header_2_font">Match Information</p>
                         </div>
 
-                        <div className="side_box">
-
-                            <div className="content title">
-                                <p className="header_2_font">Match Information</p>
+                        <div className="wrapper">
+                            <div className="player_box">
+                                <p className="medium_font">White (You)</p>
+                                {this.state.pieces_collected_by_white}
                             </div>
-
-                            <div className="wrapper">
-                                <div className="player_box">
-                                    <p className="medium_font">White (You)</p>
-                                    {this.state.pieces_collected_by_white}
-                                </div>
-                                <div className="player_box black_player_color">
-                                    <p className="medium_font">Black (Bot)</p>
-                                    {this.state.pieces_collected_by_black}
-                                </div>
+                            <div className="player_box black_player_color">
+                                <p className="medium_font">Black (Bot)</p>
+                                {this.state.pieces_collected_by_black}
                             </div>
-                            <div className="wrapper">
-                                { this.state.turn == 'w' ? <div className="highlight_box"></div>
-                                    : <div className="highlight_box transparent"></div> }
-                                { this.state.turn == 'b' ? <div className="highlight_box"></div>
-                                    : <div className="highlight_box transparent"></div> }
-                            </div>
+                        </div>
+                        <div className="wrapper">
+                            { this.state.turn == 'w' ? <div className="highlight_box"></div>
+                                : <div className="highlight_box transparent"></div> }
+                            { this.state.turn == 'b' ? <div className="highlight_box"></div>
+                                : <div className="highlight_box transparent"></div> }
+                        </div>
 
 
-                            <div className="button_wrapper">
-                                <button className="reset_button history" onClick={() => this.viewHistory('back_atw')}>
-                                    <p className="button_font">&lt;&lt;</p>
-                                </button>
-                                <button className="reset_button history" onClick={() => this.viewHistory('back')}>
-                                    <p className="button_font">&lt;</p>
-                                </button>
-                                <button className="reset_button" onClick={() => this.reset()}>
-                                    <p className="button_font">Restart Game</p>
-                                </button>
-                                <button className="reset_button history" onClick={() => this.viewHistory('next')}>
-                                    <p className="button_font">&gt;</p>
-                                </button>
-                                <button className="reset_button history" onClick={() => this.viewHistory('next_atw')}>
-                                    <p className="button_font">&gt;&gt;</p>
-                                </button>
-                            </div>
+                        <div className="button_wrapper">
+                            <button className="reset_button history" onClick={() => this.viewHistory('back_atw')}>
+                                <p className="button_font">&lt;&lt;</p>
+                            </button>
+                            <button className="reset_button history" onClick={() => this.viewHistory('back')}>
+                                <p className="button_font">&lt;</p>
+                            </button>
+                            <button className="reset_button" onClick={() => this.reset()}>
+                                <p className="button_font">Restart Game</p>
+                            </button>
+                            <button className="reset_button history" onClick={() => this.viewHistory('next')}>
+                                <p className="button_font">&gt;</p>
+                            </button>
+                            <button className="reset_button history" onClick={() => this.viewHistory('next_atw')}>
+                                <p className="button_font">&gt;&gt;</p>
+                            </button>
+                        </div>
 
-                            <div className="mate_wrapper">
-                                <p className="small_font">
-                                    {this.in_check('w', this.state.squares) && !this.checkmate('w', this.state.squares)
-                                    == true ? 'You are in check!': ''}
-                                </p>
-                                <p className="small_font">
-                                    {this.in_check('b', this.state.squares) && !this.checkmate('b', this.state.squares)
-                                    == true ? 'Black player is in check.':''}
-                                </p>
-                                <p className="small_font">
-                                    {this.checkmate('w', this.state.squares) == true ? 'You lost by checkmate.':''}
-                                </p>
-                                <p className="small_font">
-                                    {this.checkmate('b', this.state.squares) == true ? 'You won by checkmate!':''}
-                                </p>
-                                <p className="small_font">
-                                    {((this.stalemate('w', this.state.squares) && this.state.turn == 'w') == true)
-                                        ? 'You are in stalemate. Game over.':''}
-                                </p>
-                                <p className="small_font">
-                                    {((this.stalemate('b', this.state.squares) && this.state.turn == 'b') == true)
-                                        ? 'Black is in stalemate. Game over.':''}
-                                </p>
-                            </div>
-
+                        <div className="mate_wrapper">
+                            <p className="small_font">
+                                {this.in_check('w', this.state.squares) && !this.checkmate('w', this.state.squares)
+                                == true ? 'You are in check!': ''}
+                            </p>
+                            <p className="small_font">
+                                {this.in_check('b', this.state.squares) && !this.checkmate('b', this.state.squares)
+                                == true ? 'Black player is in check.':''}
+                            </p>
+                            <p className="small_font">
+                                {this.checkmate('w', this.state.squares) == true ? 'You lost by checkmate.':''}
+                            </p>
+                            <p className="small_font">
+                                {this.checkmate('b', this.state.squares) == true ? 'You won by checkmate!':''}
+                            </p>
+                            <p className="small_font">
+                                {((this.stalemate('w', this.state.squares) && this.state.turn == 'w') == true)
+                                    ? 'You are in stalemate. Game over.':''}
+                            </p>
+                            <p className="small_font">
+                                {((this.stalemate('b', this.state.squares) && this.state.turn == 'b') == true)
+                                    ? 'Black is in stalemate. Game over.':''}
+                            </p>
                         </div>
 
                     </div>
-                }
 
-                {!this.state.loading &&
-                    <div className="right_screen bounceInDown">
-                        <div className="row_label"> {row_nums} </div>
-                        <div className="table"> {board} </div>
-                        <div className="col_label"> {col_nums} </div>
-                    </div>
-                }
+                </div>
+
+
+                <div className="right_screen bounceInDown">
+                    <div className="row_label"> {row_nums} </div>
+                    <div className="table"> {board} </div>
+                    <div className="col_label"> {col_nums} </div>
+                </div>
 
             </div>
         </div>

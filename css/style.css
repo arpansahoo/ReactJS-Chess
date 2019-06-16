@@ -5,113 +5,9 @@ body, html {
 	overflow-x: hidden;
 }
 
-*, *:before, *:after {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
-}
-
-.center-on-page {
-	position: absolute;
-	top: 43%;
-	left: 50%;
-	transform: translate(-50%,-50%);
-}
-
-.loading_wrapper {
-	position: absolute;
-	width: 100%;
-	height: auto;
-	top: 55%;
-}
-
-.loading_font {
-	font-size: 3em;
-	line-height: 1;
-	text-align: center;
-}
-
-/* Poké Styles */
-.pokeball {
-	position: relative;
-	width: 200px;
-	height: 200px;
-	background: #fff;
-	border: 10px solid #000;
-	border-radius: 50%;
-	overflow: hidden;
-	animation: fall .25s ease-in-out,
-			   shake 1.25s cubic-bezier(.36,.07,.19,.97) 3;
-}
-
-
-.pokeball::before,
-.pokeball::after {
-  content:"";
-  position: absolute;
-}
-.pokeball::before {
-  background: #fd4949;
-  width: 100%;
-  height: 50%;
-}
-.pokeball::after {
-  top: calc(50% - 8px);
-  width: 110%;
-  height: 15px;
-  background: #000;
-}
-.pokeball_button {
-  position: absolute;
-  top: calc(50% - 30px);
-  left: calc(50% - 30px);
-  width: 60px;
-  height: 60px;
-  background: #7f8c8d;
-  border: 10px solid #fff;
-  border-radius: 50%;
-  z-index: 10;
-  box-shadow: 0 0 0 8px black;
-  animation: blink .5s alternate 7;
-}
-/* Animation */
-@keyframes blink {
-  from { background: #eee;}
-  to { background: #fd4949; }
-}
-@keyframes shake {
-  0 { transform: translate(0, 0) rotate(0); }
-  20% { transform: translate(-10px, 0) rotate(-20deg); }
-  30% { transform: translate(10px, 0) rotate(20deg); }
-  50% { transform: translate(-10px, 0) rotate(-10deg); }
-  60% { transform: translate(10px, 0) rotate(10deg); }
-  100% { transform: translate(0, 0) rotate(0); }
-}
-@keyframes fall {
-  0% { top: -200px }
-  60% { top: 0 }
-  80% { top: -20px }
-  100% { top: 0 }
-}
-
-.fadeOut {
-	animation: fadeOut 1s ease-in-out;
-	animation-delay: 3.5s;
-	animation-fill-mode: forwards;
-}
-
-@-webkit-keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
 .bounceInDown {
-	animation: bounceInDown 1.2s ease-in-out;
+	-webkit-animation: bounceInDown 1s;
+  	animation: bounceInDown 1s;
 }
 
 @-webkit-keyframes bounceInDown {
@@ -204,7 +100,7 @@ a:active {
 
 .wrapper {
 	margin-left: 5%;
-	width: 100%;
+	width: 90%;
 	height: auto;
 	display: flex;
 	padding-bottom: 0px;
