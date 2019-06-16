@@ -1,0 +1,64 @@
+body, html, footer {
+	background-color: #ebedef;
+	color: #242424;
+	font-family: "Gill Sans", sans-serif;
+	overflow-x: hidden;
+}
+
+.wrapper {
+	display: block;
+	margin-right: auto;
+	margin-left:  auto;
+	max-width: 1300px;
+	padding-right: 10px;
+	padding-left:  10px;
+	padding-top: 10px;
+	padding-bottom: 50px;
+}
+
+.header {
+	color: #00a494;
+	font-size: 2.7em;
+	line-height: 1;
+	font-weight: normal;
+}
+
+.paragraph {
+	font-size: 1.5em;
+	font-weight: normal;
+}
+
+/* unvisited link */
+a:link {
+ 	color: #242424;
+}
+
+/* visited link */
+a:visited {
+ 	color: #242424;
+}
+
+/* mouse over link */
+a:hover {
+ 	color: #00a494;
+}
+
+/* selected link */
+a:active {
+ 	color: #00a494;
+}
+
+.footer {
+	width: 100%;
+	background: #242424;
+	color: white;
+	text-align: center;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+}
+
+.footer_img {
+	height: 20px;
+	width: auto;
+}
