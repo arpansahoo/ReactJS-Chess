@@ -1437,22 +1437,22 @@ function get_piece_value(piece, position) {
 
     switch (piece.ascii.toLowerCase()) {
         case 'p':
-            pieceValue = 10 + ( piece.ascii == 'p' ? pawnEvalWhite[y][x] : pawnEvalBlack[y][x] );
+            pieceValue = 100 + ( piece.ascii == 'p' ? pawnEvalWhite[y][x] : pawnEvalBlack[y][x] );
             break;
         case 'r':
-            pieceValue = 50 + ( piece.ascii == 'r' ? rookEvalWhite[y][x] : rookEvalBlack[y][x] );
+            pieceValue = 525 + ( piece.ascii == 'r' ? rookEvalWhite[y][x] : rookEvalBlack[y][x] );
             break;
         case 'n':
-            pieceValue = 30 + knightEval[y][x];
+            pieceValue = 350 + knightEval[y][x];
             break;
         case 'b':
-            pieceValue = 30 + ( piece.ascii == 'b' ? bishopEvalWhite[y][x] : bishopEvalBlack[y][x] );
+            pieceValue = 350 + ( piece.ascii == 'b' ? bishopEvalWhite[y][x] : bishopEvalBlack[y][x] );
             break;
         case 'q':
-            pieceValue = 90 + evalQueen[y][x];
+            pieceValue = 1000 + evalQueen[y][x];
             break;
         case 'k':
-            pieceValue = 900 + ( piece.ascii == 'k' ? kingEvalWhite[y][x] : kingEvalBlack[y][x] );
+            pieceValue = 10000 + ( piece.ascii == 'k' ? kingEvalWhite[y][x] : kingEvalBlack[y][x] );
             break;
         default:
             pieceValue = 0;
