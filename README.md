@@ -9,4 +9,4 @@ Click the piece you want to move, and then click the desired destination. Users 
 You play as the white player, and black is controlled by a simple chess engine. Most of the rules of chess, from castling to not being able to put yourself in check, are fully implemented. Draws and time limits are not enabled in this app. I also implemented time travel, so that users can view previous moves.
 
 ## Demo
-You can play here: [DEMO](https://arpansahoo.github.io/pokemon-chess/)
+You can play here: [DEMO](https://arpansahoo.github.io/reactjs-chess/)
