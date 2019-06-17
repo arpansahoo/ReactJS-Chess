@@ -10,7 +10,7 @@ body, html, footer {
 	margin-right: auto;
 	margin-left:  auto;
 	max-width: 1300px;
-	padding-right: 10px;
+	padding-right: 30px;
 	padding-left:  10px;
 	padding-top: 20px;
 	padding-bottom: 50px;
@@ -25,7 +25,7 @@ body, html, footer {
 
 .paragraph {
 	font-size: 2em;
-	font-weight: normal;
+	font-weight: lighter;
 }
 
 a:link {

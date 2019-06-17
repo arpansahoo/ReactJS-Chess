@@ -2,6 +2,7 @@ body, html {
 	background-color: #242424;
 	color: white;
 	font-family: "Gill Sans", sans-serif;
+	font-weight: 300;
 	overflow-x: hidden;
 }
 
@@ -247,11 +248,13 @@ a:active {
 	background-color: #00ba6d;
 	border: none;
 	border-radius: 5px;
-	font-size: 0.7em;
+	font-size: 0.75em;
 	transition: background-color 0.5s;
 	margin-bottom: 0px;
 	margin-top: 5px;
 	margin-right: 10px;
+	font-family: "Gill Sans", sans-serif;
+	font-weight: 300;
 }
 
 .button_font {
