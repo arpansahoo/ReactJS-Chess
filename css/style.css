@@ -137,6 +137,11 @@ a:active {
 	line-height: 1;
 }
 
+.small_font {
+	font-size: 1.2em;
+	line-height: 1;
+}
+
 .wrapper {
 	margin-left: 5%;
 	width: 90%;
@@ -219,11 +224,6 @@ a:active {
     display: inline-block;
 }
 
-.small_font {
-	font-size: 1.2em;
-	line-height: 1;
-}
-
 .mate_wrapper {
 	text-align: center;
 }
@@ -248,7 +248,7 @@ a:active {
 	background-color: #00ba6d;
 	border: none;
 	border-radius: 5px;
-	font-size: 0.7em;
+	font-size: 0.85em;
 	transition: background-color 0.5s;
 	margin-bottom: 0px;
 	margin-top: 5px;
