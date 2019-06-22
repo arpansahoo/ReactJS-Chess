@@ -13,3 +13,6 @@ You can play here: [ReactJS Chess](https://arpansahoo.github.io/reactjs-chess/).
 
 ## Goals for Next Release
 v2.0 will have the following: (1) improved chess engine, (2) option to battle friends via the Internet, and (3) chat.
+
+## Acknowledgements
+UI inspired by [codethejason/checkers](https://github.com/codethejason/checkers).

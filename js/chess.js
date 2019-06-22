@@ -765,7 +765,7 @@ class Board extends React.Component {
                 }
 
                 this.execute_move('w', copy_squares, this.state.source, i);
-                
+
                 setTimeout(() => { this.setState ( {
                     move_made: false,
                     capture_made: false,

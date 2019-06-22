@@ -241,14 +241,14 @@ a:active {
 .reset_button {
 	position: relative;
 	text-align: center;
-	width: 28%;
+	width: 35%;
 	cursor: pointer;
 	outline: none;
 	color: white;
 	background-color: #00ba6d;
 	border: none;
 	border-radius: 5px;
-	font-size: 0.85em;
+	font-size: 0.8em;
 	transition: background-color 0.5s;
 	margin-bottom: 0px;
 	margin-top: 5px;
