@@ -867,7 +867,7 @@ class Board extends React.Component {
                     <div className="side_box">
                         <div className="content">
                             <p className="header_font">ReactJS Chess</p>
-                            <p className="medium_font">Gotta Capture 'Em All!&nbsp;&nbsp;
+                            <p className="medium_font">Play against friends or a bot!&nbsp;&nbsp;
                                 <a href="./how_to_play.html" target="_blank">How to Play</a>
                             </p>
                         </div>
