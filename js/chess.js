@@ -642,14 +642,14 @@ class Board extends React.Component {
           if (
             this.can_move_there(start, end, copy_squares, passant_pos) == true
           ) {
-            const test_squares = squares
+            const test_squares = squares.slice()
             // make the move on test board
             const test_squares_2 = this.make_move(
               test_squares,
               start,
               end,
               passant_pos
-            )
+            ).slice()
             // en passant helper
             var passant = 65;
             if (
