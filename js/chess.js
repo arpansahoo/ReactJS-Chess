@@ -617,7 +617,9 @@ class Board extends React.Component {
     passant_pos
   ) {
     const copy_squares = squares.slice();
-    if (depth == 0) return this.evaluate_black(copy_squares);
+    if (depth == 0) {
+      return this.evaluate_black(copy_squares);
+    }
 
     let best_value = is_black_player ? -9999 : 9999;
     // iterate through the possible start positions
@@ -640,14 +642,14 @@ class Board extends React.Component {
           if (
             this.can_move_there(start, end, copy_squares, passant_pos) == true
           ) {
-            const test_squares = squares.slice();
+            const test_squares = squares
             // make the move on test board
             const test_squares_2 = this.make_move(
               test_squares,
               start,
               end,
               passant_pos
-            ).slice();
+            )
             // en passant helper
             var passant = 65;
             if (
@@ -672,12 +674,12 @@ class Board extends React.Component {
             );
             if (is_black_player) {
               if (value > best_value) best_value = value;
-              alpha = Math.max(alpha, value); //alpha-beta pruning
-              if (beta <= alpha) return best_value;
+              alpha = Math.max(alpha, best_value); //alpha-beta pruning
+              if (best_value >= beta) return best_value;
             } else {
               if (value < best_value) best_value = value;
-              beta = Math.min(beta, value); //alpha-beta pruning
-              if (beta <= alpha) return best_value;
+              beta = Math.min(beta, best_value); //alpha-beta pruning
+              if (best_value <= alpha) return best_value;
             }
           }
         }
