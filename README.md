@@ -12,7 +12,7 @@ You play as the white player, and black is controlled by a simple chess AI (impl
 
 ## Demo
 
-You can play here: [ReactJS Chess](https://arpansahoo.github.io/reactjs-chess/).
+You can play here: [ReactJS Chess](https://arpansahoo.github.io/ReactJS-Chess/).
 
 ![](/preview.png)
 
